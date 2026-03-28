@@ -1,0 +1,61 @@
+{
+  "manifest_version": 3,
+  "name": "CardMax - Credit Card Optimizer",
+  "version": "0.1.0",
+  "description": "Maximize your credit card rewards. See the best card to use at checkout and track offers.",
+  "permissions": [
+    "activeTab",
+    "storage",
+    "identity",
+    "scripting"
+  ],
+  "host_permissions": [
+    "http://localhost:3000/*",
+    "https://www.americanexpress.com/*",
+    "https://global.americanexpress.com/*",
+    "https://secure.chase.com/*",
+    "https://www.chase.com/*",
+    "https://myaccounts.capitalone.com/*",
+    "https://www.capitalone.com/*",
+    "https://capitaloneoffers.com/*"
+  ],
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://www.americanexpress.com/en-us/benefits/amex-offers/*",
+        "https://global.americanexpress.com/offers/*"
+      ],
+      "js": ["content/amex-scraper.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "https://secure.chase.com/web/auth/dashboard*",
+        "https://www.chase.com/digital/offers*"
+      ],
+      "js": ["content/chase-scraper.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "https://myaccounts.capitalone.com/*",
+        "https://capitaloneoffers.com/*"
+      ],
+      "js": ["content/capitalone-scraper.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["http://*/*", "https://*/*"],
+      "js": ["content/checkout-overlay.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "icons": {}
+}

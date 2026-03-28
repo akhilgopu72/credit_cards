@@ -1,0 +1,19 @@
+{
+  "name": "cardmax",
+  "private": true,
+  "scripts": {
+    "dev": "pnpm --filter @cardmax/web dev",
+    "build": "pnpm --filter @cardmax/web build",
+    "test": "pnpm -r test",
+    "db:push": "pnpm --filter @cardmax/web db:push",
+    "db:migrate": "pnpm --filter @cardmax/web db:migrate",
+    "db:seed": "pnpm --filter @cardmax/web db:seed",
+    "db:seed-merchants": "pnpm --filter @cardmax/web db:seed-merchants",
+    "db:studio": "pnpm --filter @cardmax/web db:studio",
+    "ext:dev": "pnpm --filter @cardmax/extension dev",
+    "ext:build": "pnpm --filter @cardmax/extension build"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
