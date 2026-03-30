@@ -79,12 +79,10 @@ export default function MerchantsPage() {
 
   return (
     <VStack gap={8} align="stretch">
-      <Box>
-        <Heading size="xl">Merchant Lookup</Heading>
-        <Text color="fg.muted" mt={1}>
-          Search any merchant to see which card earns the most and what offers
-          are available.
-        </Text>
+      <Box textAlign="center" mb={4}>
+        <Heading size="4xl" fontWeight="800" letterSpacing="-0.04em" lineHeight="1.1">
+          Maximize every swipe.
+        </Heading>
       </Box>
 
       {/* Search */}

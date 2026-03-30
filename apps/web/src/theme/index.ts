@@ -269,16 +269,20 @@ const config = defineConfig({
     },
     // Fix inputs on dark backgrounds
     "input, textarea, select": {
-      color: "fg.default !important",
-      bg: "bg.subtle",
-      borderColor: "border.default",
+      color: "#ffffff !important",
+      backgroundColor: "#201f1f !important",
+      borderColor: "rgba(255,255,255,0.08) !important",
       _placeholder: {
-        color: "fg.subtle",
+        color: "#767575 !important",
       },
       _focus: {
-        borderColor: "brand.400",
-        boxShadow: "0 0 0 1px var(--chakra-colors-brand-400)",
+        borderColor: "#6e9bff !important",
+        boxShadow: "0 0 0 1px #6e9bff !important",
       },
+    },
+    // Prevent Chakra Card defaults from showing light backgrounds
+    "[data-part='root']": {
+      backgroundColor: "inherit",
     },
   },
 });

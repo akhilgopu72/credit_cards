@@ -332,12 +332,12 @@ function BestCardWidget({ hasCards, stats }: { hasCards: boolean; stats: any }) 
                 as="button"
                 w="full"
                 py={3}
-                bg="fg.default"
-                color="fg.inverted"
+                bg="#f9f9f9"
+                color="#0e0e0e"
                 borderRadius="badge"
                 fontWeight="700"
                 fontSize="sm"
-                _hover={{ opacity: 0.9 }}
+                _hover={{ bg: "#ebebeb" }}
                 transition="all 0.2s"
               >
                 Look Up a Merchant
@@ -486,11 +486,11 @@ function TransactionsPanel() {
       {/* Points Balance */}
       <Box mt="auto" pt={8}>
         <Box
-          bg="bg.subtle"
+          bg="#1a1919"
           borderRadius="card"
           p={5}
           borderWidth="1px"
-          borderColor="border.default"
+          borderColor="rgba(255,255,255,0.08)"
           textAlign="center"
         >
           <Text
@@ -498,7 +498,7 @@ function TransactionsPanel() {
             fontWeight="900"
             textTransform="uppercase"
             letterSpacing="0.2em"
-            color="fg.muted"
+            color="#adaaaa"
             mb={2}
           >
             Current Points Balance
@@ -507,6 +507,7 @@ function TransactionsPanel() {
             fontSize="3xl"
             fontWeight="900"
             letterSpacing="-0.03em"
+            color="#ffffff"
           >
             842,901
           </Text>

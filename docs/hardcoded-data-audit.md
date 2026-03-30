@@ -37,19 +37,28 @@
 ## Remaining Pages (to be filled as redesigned)
 
 ### Card Wallet (`apps/web/src/app/dashboard/wallet/page.tsx`)
-- TBD — will audit when redesigned from `card_wallet/code.html`
+- Card visuals use API data (card name, issuer, network, bonuses) — already backed
+- **Stitch shows**: Total Net Value (+$4,850/yr), Total Credits Used ($2,100 with progress bar), Active Multipliers (14x)
+- **Hardcoded in Stitch** (not yet implemented): net value stat tile, credits progress bar, multiplier count, "Optimization Recommendation" banner at bottom
+- **Issuer gradients** in `ISSUER_BG` map — decorative, no API needed
 
 ### Merchant Lookup (`apps/web/src/app/dashboard/merchants/page.tsx`)
-- TBD — will audit when redesigned from `merchant_lookup/code.html`
-- **Expected hardcodes**: MCC code display, "Merchant Intelligence" sidebar, "Top Tip" box
+- Header updated to "Maximize every swipe." per Stitch
+- Search and card ranking results are fully API-backed (existing)
+- **Stitch shows but not yet implemented**: Merchant Intelligence sidebar (MCC code 5411, Apple Pay status, Global Acceptance), "Top Tip" box, multiplier legend dots, estimated $/pt values, "Recent Lookups" sidebar
+- **Hardcoded in Stitch**: MCC code display, payment method badges, acceptance status
 
 ### Scenario Modeling (`apps/web/src/app/dashboard/scenarios/page.tsx`)
-- TBD — will audit when redesigned from `scenario_modeling/code.html`
-- **Expected hardcodes**: Efficiency score, reward accumulation chart
+- **NEEDS FULL REDESIGN** from `scenario_modeling/code.html` — completely different layout
+- Stitch uses split-panel: left 1/3 for spend inputs, right 2/3 for results visualization
+- **Stitch hardcodes to track**: Efficiency Score (94.2/100), "Optimal Allocation Found", reward accumulation stacked bar chart, "Optimized Path Comparison" showing 3 wallet combos with projected yields, "Category Allocation Matrix" table with current vs optimal card + multiplier delta + annual delta
+- **API needed**: `POST /api/scenarios?action=optimize` already exists but response needs enrichment with efficiency score, path comparison, and per-category deltas
 
 ### Card Recommendations (`apps/web/src/app/dashboard/recommendations/page.tsx`)
-- TBD — will audit when redesigned from `card_recommendations/code.html`
-- **Expected hardcodes**: Trust partners grid, "Data Accuracy: 99.4%"
+- **NEEDS FULL REDESIGN** from `card_recommendations/code.html` — different layout
+- Stitch shows: "Elite Recommendations" hero with top card as large featured card, Trust Partners grid (Visa, Amex, Chase, Master), "Data Accuracy: 99.4%", secondary cards as smaller cards below
+- **Stitch hardcodes to track**: Trust partner logos, data accuracy percentage, "Apply Now" affiliate CTAs, Financial Disclosure footer text
+- **API needed**: Current `POST /api/scenarios?action=recommend` works but response could add confidence score
 
 ### Chrome Extension Popup
 - TBD — will audit when redesigned from `chrome_extension_popup/code.html`

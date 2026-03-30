@@ -18,10 +18,14 @@ import type { WalletCard, CardProduct } from "@/types/api";
 import { ISSUER_COLORS } from "@/types/api";
 
 const ISSUER_BG: Record<string, string> = {
-  chase: "linear-gradient(135deg, #003087 0%, #0052cc 100%)",
-  amex: "linear-gradient(135deg, #006fcf 0%, #00a3e0 100%)",
-  capital_one: "linear-gradient(135deg, #d03027 0%, #e85d5d 100%)",
-  citi: "linear-gradient(135deg, #003b70 0%, #0066b2 100%)",
+  chase: "linear-gradient(135deg, #0a1e3b 0%, #010811 100%)",
+  amex: "linear-gradient(135deg, #2c2c2c 0%, #000000 100%)",
+  capital_one: "linear-gradient(135deg, #1b1b1b 0%, #0c1c2e 100%)",
+  citi: "linear-gradient(135deg, #0a1e3b 0%, #000000 100%)",
+  us_bank: "linear-gradient(135deg, #1a1a1a 0%, #0e0e0e 100%)",
+  barclays: "linear-gradient(135deg, #1a1a1a 0%, #0e0e0e 100%)",
+  wells_fargo: "linear-gradient(135deg, #1a1a1a 0%, #0e0e0e 100%)",
+  bank_of_america: "linear-gradient(135deg, #1a1a1a 0%, #0e0e0e 100%)",
 };
 
 const ISSUER_PALETTE: Record<string, string> = {
@@ -180,8 +184,8 @@ export default function WalletPage() {
       {/* Page Header */}
       <Flex justifyContent="space-between" alignItems="start" flexWrap="wrap" gap={4}>
         <Box>
-          <Heading size="2xl" fontWeight="700" letterSpacing="-0.02em">
-            My Card Wallet
+          <Heading size="3xl" fontWeight="800" letterSpacing="-0.03em">
+            My Wallet
           </Heading>
           <Text color="fg.muted" mt={1}>
             {walletCards.length > 0
