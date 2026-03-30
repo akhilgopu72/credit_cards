@@ -63,10 +63,11 @@
 | Ann. Delta in allocation matrix | Rough estimate `spend * (mult-1) * 0.015 * 12` | Use actual CPP from point_valuations for precise delta calculation |
 
 ### Card Recommendations (`apps/web/src/app/dashboard/recommendations/page.tsx`)
-- **NEEDS FULL REDESIGN** from `card_recommendations/code.html` — different layout
-- Stitch shows: "Elite Recommendations" hero with top card as large featured card, Trust Partners grid (Visa, Amex, Chase, Master), "Data Accuracy: 99.4%", secondary cards as smaller cards below
-- **Stitch hardcodes to track**: Trust partner logos, data accuracy percentage, "Apply Now" affiliate CTAs, Financial Disclosure footer text
-- **API needed**: Current `POST /api/scenarios?action=recommend` works but response could add confidence score
+- Header updated to "Elite Recommendations" with "Intelligent Insights" green label per Stitch
+- Results rendering and spend input flow preserved — fully API-backed
+- **Still needs**: Hero featured card layout for #1 result, Trust Partners sidebar, Data Accuracy badge
+- **Stitch hardcodes to track**: Trust partner logos (VISA, AMEX, CHASE, MASTER), "Data Accuracy: 99.4%", Financial Disclosure footer text, "Apply Now" affiliate CTAs
+- **API needed**: Confidence/accuracy score in recommend response, affiliate URL tracking
 
 ### Chrome Extension Popup
 - TBD — will audit when redesigned from `chrome_extension_popup/code.html`

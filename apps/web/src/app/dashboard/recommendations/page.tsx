@@ -152,11 +152,15 @@ export default function RecommendationsPage() {
 
   return (
     <VStack gap={8} align="stretch">
-      <Box>
-        <Heading size="xl">Card Recommendations</Heading>
-        <Text color="fg.muted" mt={1}>
-          Find the best credit cards for your spending profile. We evaluate every
-          card in our database and rank them by net value.
+      <Box mb={4}>
+        <Text color="success.300" fontSize="sm" fontWeight="700" letterSpacing="0.15em" textTransform="uppercase" mb={2}>
+          Intelligent Insights
+        </Text>
+        <Heading size="3xl" fontWeight="800" letterSpacing="-0.03em" mb={3}>
+          Elite Recommendations
+        </Heading>
+        <Text color="fg.muted" maxW="600px" fontSize="md" lineHeight="1.6">
+          We evaluate every card in our database against your spending profile and rank them by net annual value.
         </Text>
       </Box>
 
