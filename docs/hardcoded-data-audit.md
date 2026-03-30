@@ -65,7 +65,9 @@
 ### Card Recommendations (`apps/web/src/app/dashboard/recommendations/page.tsx`)
 - Header updated to "Elite Recommendations" with "Intelligent Insights" green label per Stitch
 - Results rendering and spend input flow preserved — fully API-backed
-- **Still needs**: Hero featured card layout for #1 result, Trust Partners sidebar, Data Accuracy badge
+- Trust Partners sidebar added (VISA, AMEX, CHASE, MASTER) with Data Accuracy: 99.4%
+- Stitch-style pill buttons for Sort and Find Best Cards
+- **Still needs**: Hero featured card layout for #1 result (full-width with card image)
 - **Stitch hardcodes to track**: Trust partner logos (VISA, AMEX, CHASE, MASTER), "Data Accuracy: 99.4%", Financial Disclosure footer text, "Apply Now" affiliate CTAs
 - **API needed**: Confidence/accuracy score in recommend response, affiliate URL tracking
 
