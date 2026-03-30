@@ -5,71 +5,55 @@ import {
   Heading,
   Text,
   VStack,
-  Button,
-  Input,
   HStack,
+  Flex,
   Badge,
   Spinner,
-  Separator,
   SimpleGrid,
   Table,
-  Checkbox,
 } from "@chakra-ui/react";
 import { useState, useEffect, useCallback } from "react";
 import type { ScenarioOutput, Allocation } from "@/server/services/scenario-engine";
+import type { WalletCard } from "@/types/api";
 
 // ─── Category Labels ─────────────────────────────────────────────
 
 const spendCategories = [
   { key: "dining", label: "Dining & Restaurants" },
   { key: "groceries", label: "Groceries" },
-  { key: "travel", label: "Travel" },
-  { key: "gas", label: "Gas" },
+  { key: "travel", label: "Travel & Flights" },
+  { key: "gas", label: "Gas & Transit" },
   { key: "streaming", label: "Streaming" },
-  { key: "online_shopping", label: "Online Shopping" },
+  { key: "online_shopping", label: "General Shopping" },
   { key: "transit", label: "Transit & Rideshare" },
   { key: "general", label: "Everything Else" },
 ];
 
-// ─── Types ───────────────────────────────────────────────────────
-
-import type { WalletCard } from "@/types/api";
 type WalletCardData = WalletCard;
-
-// ─── Formatting helpers ──────────────────────────────────────────
 
 function fmt(n: number): string {
   return n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
-
 function fmtPts(n: number): string {
   return Math.round(n).toLocaleString("en-US");
+}
+function fmtK(n: number): string {
+  return n >= 1000 ? `${(n / 1000).toFixed(1)}k` : n.toString();
 }
 
 // ─── Component ───────────────────────────────────────────────────
 
 export default function ScenariosPage() {
-  // Wallet state
   const [walletCards, setWalletCards] = useState<WalletCardData[]>([]);
   const [loadingWallet, setLoadingWallet] = useState(true);
   const [walletError, setWalletError] = useState<string | null>(null);
-
-  // Spend input
   const [monthlySpend, setMonthlySpend] = useState<Record<string, number>>(() => {
     const initial: Record<string, number> = {};
-    for (const cat of spendCategories) {
-      initial[cat.key] = 0;
-    }
+    for (const cat of spendCategories) initial[cat.key] = 0;
     return initial;
   });
-
-  // Card selection (userCard IDs)
   const [selectedCards, setSelectedCards] = useState<Set<string>>(new Set());
-
-  // Timeframe
-  const [timeframeMonths, setTimeframeMonths] = useState(12);
-
-  // Results
+  const [timeframeMonths] = useState(12);
   const [calculating, setCalculating] = useState(false);
   const [results, setResults] = useState<ScenarioOutput | null>(null);
   const [optimizedResults, setOptimizedResults] = useState<
@@ -77,69 +61,49 @@ export default function ScenariosPage() {
   >(null);
   const [error, setError] = useState<string | null>(null);
 
-  // ─── Fetch Wallet ────────────────────────────────────────────
+  // ─── Fetch Wallet ─────────────────────────────────────────────
 
   useEffect(() => {
     async function fetchWallet() {
       try {
         const res = await fetch("/api/wallet");
         const json = await res.json();
-        if (json.error) {
-          setWalletError(json.error);
-        } else {
-          setWalletCards(json.data ?? []);
+        if (json.error) setWalletError(json.error);
+        else {
+          const cards = json.data ?? [];
+          setWalletCards(cards);
+          // Auto-select all cards
+          setSelectedCards(new Set(cards.map((c: WalletCardData) => c.id)));
         }
-      } catch {
-        setWalletError("Failed to load wallet");
-      } finally {
-        setLoadingWallet(false);
-      }
+      } catch { setWalletError("Failed to load wallet"); }
+      finally { setLoadingWallet(false); }
     }
     fetchWallet();
   }, []);
 
-  // ─── Card Selection ──────────────────────────────────────────
-
-  const toggleCard = useCallback((userCardId: string) => {
+  const toggleCard = useCallback((id: string) => {
     setSelectedCards((prev) => {
       const next = new Set(prev);
-      if (next.has(userCardId)) {
-        next.delete(userCardId);
-      } else {
-        next.add(userCardId);
-      }
+      next.has(id) ? next.delete(id) : next.add(id);
       return next;
     });
   }, []);
 
-  // ─── Build default allocation (uniform) ──────────────────────
-
   function buildUniformAllocation(): Allocation {
     const cards = Array.from(selectedCards);
-    const pctPerCard = cards.length > 0 ? 100 / cards.length : 0;
+    const pct = cards.length > 0 ? 100 / cards.length : 0;
     const allocation: Allocation = {};
-    for (const cardId of cards) {
-      allocation[cardId] = {};
-      for (const cat of spendCategories) {
-        allocation[cardId][cat.key] = pctPerCard;
-      }
+    for (const id of cards) {
+      allocation[id] = {};
+      for (const cat of spendCategories) allocation[id][cat.key] = pct;
     }
     return allocation;
   }
 
-  // ─── Calculate ───────────────────────────────────────────────
-
-  async function handleCalculate() {
-    if (selectedCards.size === 0) {
-      setError("Select at least one card from your wallet.");
-      return;
-    }
-
+  async function handleRunAnalysis() {
+    if (selectedCards.size === 0) { setError("Select at least one card."); return; }
     const hasSpend = Object.values(monthlySpend).some((v) => v > 0);
-    if (!hasSpend) {
-      setError("Enter monthly spend in at least one category.");
-      return;
-    }
+    if (!hasSpend) { setError("Enter spend in at least one category."); return; }
 
     setCalculating(true);
     setError(null);
@@ -147,636 +111,460 @@ export default function ScenariosPage() {
     setOptimizedResults(null);
 
     try {
-      const allocation = buildUniformAllocation();
-      const res = await fetch("/api/scenarios", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          monthly_spend: monthlySpend,
-          card_ids: Array.from(selectedCards),
-          allocation,
-          timeframe_months: timeframeMonths,
+      // Run both calculate and optimize in parallel
+      const [calcRes, optRes] = await Promise.all([
+        fetch("/api/scenarios", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            monthly_spend: monthlySpend,
+            card_ids: Array.from(selectedCards),
+            allocation: buildUniformAllocation(),
+            timeframe_months: timeframeMonths,
+          }),
         }),
-      });
-      const json = await res.json();
-      if (json.error) {
-        setError(json.error);
-      } else {
-        setResults(json.data);
-      }
+        fetch("/api/scenarios?action=optimize", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            monthly_spend: monthlySpend,
+            card_ids: Array.from(selectedCards),
+            timeframe_months: timeframeMonths,
+          }),
+        }),
+      ]);
+
+      const calcJson = await calcRes.json();
+      const optJson = await optRes.json();
+
+      if (calcJson.error) setError(calcJson.error);
+      else setResults(calcJson.data);
+
+      if (!optJson.error) setOptimizedResults(optJson.data);
     } catch {
-      setError("Calculation failed. Please try again.");
+      setError("Analysis failed. Please try again.");
     } finally {
       setCalculating(false);
     }
   }
-
-  // ─── Auto-Optimize ──────────────────────────────────────────
-
-  async function handleOptimize() {
-    if (selectedCards.size === 0) {
-      setError("Select at least one card from your wallet.");
-      return;
-    }
-
-    const hasSpend = Object.values(monthlySpend).some((v) => v > 0);
-    if (!hasSpend) {
-      setError("Enter monthly spend in at least one category.");
-      return;
-    }
-
-    setCalculating(true);
-    setError(null);
-    setOptimizedResults(null);
-
-    try {
-      const res = await fetch("/api/scenarios?action=optimize", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          monthly_spend: monthlySpend,
-          card_ids: Array.from(selectedCards),
-          timeframe_months: timeframeMonths,
-        }),
-      });
-      const json = await res.json();
-      if (json.error) {
-        setError(json.error);
-      } else {
-        setOptimizedResults(json.data);
-      }
-    } catch {
-      setError("Optimization failed. Please try again.");
-    } finally {
-      setCalculating(false);
-    }
-  }
-
-  // ─── Save Scenario ──────────────────────────────────────────
 
   async function handleSave() {
     if (!results) return;
-
     const name = prompt("Enter a name for this scenario:");
     if (!name) return;
-
     try {
-      const res = await fetch("/api/scenarios?action=save", {
+      await fetch("/api/scenarios?action=save", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name,
-          config: {
-            monthly_spend: monthlySpend,
-            cards: Array.from(selectedCards),
-            allocation: buildUniformAllocation(),
-          },
+          config: { monthly_spend: monthlySpend, cards: Array.from(selectedCards), allocation: buildUniformAllocation() },
           results: results.results,
         }),
       });
-      const json = await res.json();
-      if (json.error) {
-        setError(json.error);
-      } else {
-        alert("Scenario saved successfully!");
-      }
-    } catch {
-      setError("Failed to save scenario.");
-    }
+      alert("Scenario saved!");
+    } catch { setError("Failed to save."); }
   }
 
-  // ─── Render helpers ─────────────────────────────────────────
+  const totalSpend = Object.values(monthlySpend).reduce((a, b) => a + b, 0);
 
-  function getCardLabel(wc: WalletCardData): string {
-    return wc.nickname ?? wc.card.name;
-  }
-
-  // ─── Render ──────────────────────────────────────────────────
+  // ─── Render ───────────────────────────────────────────────────
 
   return (
-    <VStack gap={8} align="stretch">
-      <Box>
-        <Heading size="xl">Scenario Modeling</Heading>
-        <Text color="fg.muted" mt={1}>
-          Model different spend strategies and see how many points you could
-          earn.
-        </Text>
-      </Box>
-
-      {/* Monthly Spend Input */}
-      <Box bg="bg.surface" p={6} borderRadius="card" shadow="card">
-        <HStack justifyContent="space-between" mb={4} flexWrap="wrap" gap={3}>
-          <Heading size="md">Monthly Spend by Category</Heading>
-          <HStack>
-            <Text fontSize="sm" color="fg.muted">
-              Timeframe:
-            </Text>
-            <Input
-              type="number"
-              value={timeframeMonths}
-              onChange={(e) =>
-                setTimeframeMonths(Math.max(1, parseInt(e.target.value) || 12))
-              }
-              w="80px"
-              size="sm"
-              min={1}
-              max={120}
-            />
-            <Text fontSize="sm" color="fg.muted">
-              months
-            </Text>
-          </HStack>
+    <Box>
+      {/* Header */}
+      <Flex justify="space-between" align="end" mb={8}>
+        <Box>
+          <Heading size="2xl" fontWeight="800" letterSpacing="-0.03em">
+            Scenario Modeling
+          </Heading>
+          <Text color="fg.muted" fontSize="sm" mt={1}>
+            Optimize your wallet strategy based on projected monthly spending patterns.
+          </Text>
+        </Box>
+        <HStack gap={3}>
+          <Box
+            as="button"
+            px={4}
+            py={2}
+            borderRadius="badge"
+            borderWidth="1px"
+            borderColor="rgba(255,255,255,0.1)"
+            fontSize="xs"
+            fontWeight="700"
+            color="fg.default"
+            _hover={{ bg: "bg.subtle" }}
+            onClick={handleSave}
+            opacity={results ? 1 : 0.3}
+          >
+            SAVE SCENARIO
+          </Box>
+          <Box
+            as="button"
+            px={6}
+            py={2}
+            borderRadius="badge"
+            bg="#f9f9f9"
+            color="#0e0e0e"
+            fontSize="xs"
+            fontWeight="700"
+            _hover={{ bg: "#ebebeb" }}
+            onClick={handleRunAnalysis}
+            opacity={calculating ? 0.5 : 1}
+          >
+            {calculating ? "ANALYZING..." : "RUN ANALYSIS"}
+          </Box>
         </HStack>
-        <VStack gap={3} align="stretch">
-          {spendCategories.map((cat) => (
-            <HStack key={cat.key} justifyContent="space-between" flexWrap="wrap" gap={2}>
-              <Text w={{ base: "full", sm: "200px" }} fontSize="sm">
-                {cat.label}
-              </Text>
-              <HStack>
-                <Text color="fg.muted">$</Text>
-                <Input
-                  type="number"
-                  placeholder="0"
-                  w="150px"
-                  size="sm"
-                  value={monthlySpend[cat.key] || ""}
-                  onChange={(e) => {
-                    const val = parseFloat(e.target.value) || 0;
-                    setMonthlySpend((prev) => ({ ...prev, [cat.key]: val }));
-                  }}
-                />
-              </HStack>
-            </HStack>
-          ))}
-          <Separator />
-          <HStack justifyContent="space-between">
-            <Text w="200px" fontSize="sm" fontWeight="bold">
-              Total Monthly Spend
-            </Text>
-            <Text fontWeight="bold">
-              ${fmt(Object.values(monthlySpend).reduce((a, b) => a + b, 0))}
-            </Text>
-          </HStack>
-        </VStack>
-      </Box>
-
-      {/* Card Selection */}
-      <Box bg="bg.surface" p={6} borderRadius="card" shadow="card">
-        <Heading size="md" mb={4}>
-          Cards to Compare
-        </Heading>
-        {loadingWallet ? (
-          <HStack justifyContent="center" py={4}>
-            <Spinner size="sm" />
-            <Text color="fg.muted" fontSize="sm">
-              Loading wallet...
-            </Text>
-          </HStack>
-        ) : walletError ? (
-          <Text color="danger.fg" fontSize="sm">
-            {walletError}
-          </Text>
-        ) : walletCards.length === 0 ? (
-          <Text color="fg.muted" fontSize="sm">
-            No cards in your wallet. Add cards from the{" "}
-            <Text as="span" fontWeight="bold">
-              My Cards
-            </Text>{" "}
-            page first.
-          </Text>
-        ) : (
-          <VStack gap={2} align="stretch">
-            {walletCards.map((wc) => {
-              const version = wc.card.versions[0];
-              const isSelected = selectedCards.has(wc.id);
-              return (
-                <Box
-                  key={wc.id}
-                  p={3}
-                  borderWidth="1px"
-                  borderColor={isSelected ? "brand.emphasized" : "border.default"}
-                  borderRadius="md"
-                  bg={isSelected ? "brand.subtle" : "bg.surface"}
-                  cursor="pointer"
-                  onClick={() => toggleCard(wc.id)}
-                  _hover={{ borderColor: "brand.emphasized" }}
-                >
-                  <HStack justifyContent="space-between">
-                    <HStack>
-                      <Checkbox.Root
-                        checked={isSelected}
-                        onCheckedChange={() => toggleCard(wc.id)}
-                        size="sm"
-                      >
-                        <Checkbox.HiddenInput />
-                        <Checkbox.Control />
-                      </Checkbox.Root>
-                      <VStack gap={0} align="start">
-                        <Text fontWeight="medium" fontSize="sm">
-                          {getCardLabel(wc)}
-                        </Text>
-                        <Text fontSize="xs" color="fg.muted">
-                          {wc.card.issuer.replace(/_/g, " ").toUpperCase()} -{" "}
-                          {wc.card.network.toUpperCase()}
-                        </Text>
-                      </VStack>
-                    </HStack>
-                    <HStack gap={1} flexWrap="wrap" justifyContent="flex-end">
-                      {version?.categoryBonuses
-                        .slice(0, 4)
-                        .map((b) => (
-                          <Badge key={b.category} size="sm" colorPalette="green">
-                            {b.category}: {b.multiplier}x
-                          </Badge>
-                        ))}
-                      <Badge size="sm" colorPalette="gray">
-                        Base: {version?.baseEarnRate.points_per_dollar ?? 1}x
-                      </Badge>
-                    </HStack>
-                  </HStack>
-                </Box>
-              );
-            })}
-            <Text fontSize="xs" color="fg.muted" mt={1}>
-              {selectedCards.size} card{selectedCards.size !== 1 ? "s" : ""}{" "}
-              selected
-            </Text>
-          </VStack>
-        )}
-      </Box>
+      </Flex>
 
       {/* Error */}
       {error && (
-        <Box bg="danger.subtle" p={4} borderRadius="md" borderWidth="1px" borderColor="danger.muted">
-          <Text color="danger.fg" fontSize="sm">
-            {error}
+        <Box bg="rgba(255,113,108,0.1)" p={4} borderRadius="card" mb={6} borderWidth="1px" borderColor="rgba(255,113,108,0.2)">
+          <Text color="danger.300" fontSize="sm">{error}</Text>
+        </Box>
+      )}
+
+      {/* Split Panel Layout */}
+      <Flex gap={0} minH="70vh">
+        {/* ─── Left Panel: Spend Inputs ──────────────────── */}
+        <Box w={{ base: "full", lg: "33%" }} borderRightWidth={{ lg: "1px" }} borderColor="border.default" p={8} bg="#131313" borderRadius={{ base: "card", lg: "0" }} borderLeftRadius="card">
+
+          <Text fontSize="xs" fontWeight="700" color="fg.muted" letterSpacing="0.2em" textTransform="uppercase" mb={6}>
+            Monthly Estimates
           </Text>
-        </Box>
-      )}
 
-      {/* Actions */}
-      <HStack justifyContent="flex-end" gap={3} flexWrap="wrap">
-        <Button
-          variant="outline"
-          colorPalette="green"
-          size="lg"
-          onClick={handleOptimize}
-          disabled={calculating}
-        >
-          Auto-Optimize
-        </Button>
-        <Button
-          colorPalette="blue"
-          size="lg"
-          onClick={handleCalculate}
-          disabled={calculating}
-        >
-          {calculating ? <Spinner size="sm" /> : "Calculate Rewards"}
-        </Button>
-      </HStack>
-
-      {/* Results: Current Allocation */}
-      {results && (
-        <ResultsDisplay
-          title="Current Allocation (Uniform Split)"
-          output={results}
-          walletCards={walletCards}
-          selectedCards={selectedCards}
-          timeframeMonths={timeframeMonths}
-          onSave={handleSave}
-        />
-      )}
-
-      {/* Results: Optimized Allocation */}
-      {optimizedResults && (
-        <ResultsDisplay
-          title="Optimized Allocation (Best Card per Category)"
-          output={optimizedResults}
-          walletCards={walletCards}
-          selectedCards={selectedCards}
-          timeframeMonths={timeframeMonths}
-          allocation={optimizedResults.allocation}
-          isOptimized
-        />
-      )}
-
-      {/* Comparison */}
-      {results && optimizedResults && (
-        <ComparisonDisplay
-          current={results}
-          optimized={optimizedResults}
-          timeframeMonths={timeframeMonths}
-        />
-      )}
-    </VStack>
-  );
-}
-
-// ─── Results Display ─────────────────────────────────────────────
-
-function ResultsDisplay({
-  title,
-  output,
-  walletCards,
-  selectedCards,
-  timeframeMonths,
-  onSave,
-  allocation,
-  isOptimized,
-}: {
-  title: string;
-  output: ScenarioOutput;
-  walletCards: WalletCardData[];
-  selectedCards: Set<string>;
-  timeframeMonths: number;
-  onSave?: () => void;
-  allocation?: Allocation;
-  isOptimized?: boolean;
-}) {
-  const { results, detail } = output;
-
-  return (
-    <Box bg="bg.surface" p={6} borderRadius="card" shadow="card">
-      <HStack justifyContent="space-between" mb={4} flexWrap="wrap" gap={2}>
-        <Heading size="md">{title}</Heading>
-        {onSave && (
-          <Button size="sm" variant="outline" onClick={onSave}>
-            Save Scenario
-          </Button>
-        )}
-      </HStack>
-
-      {/* Summary Stat Cards */}
-      <SimpleGrid columns={{ base: 2, md: 4 }} gap={4} mb={6}>
-        <StatCard
-          label="Total Points"
-          value={fmtPts(results.total_points)}
-          subtext={`over ${timeframeMonths} months`}
-          color="blue"
-        />
-        <StatCard
-          label="Point Value"
-          value={`$${fmt(results.total_cashback)}`}
-          subtext="estimated cash value"
-          color="green"
-        />
-        <StatCard
-          label="Credits Value"
-          value={`$${fmt(detail.per_card.reduce((s, c) => s + c.credits_value, 0))}`}
-          subtext="statement credits"
-          color="purple"
-        />
-        <StatCard
-          label="Net Rewards"
-          value={`$${fmt(detail.net_rewards_value)}`}
-          subtext="value - fees"
-          color={detail.net_rewards_value >= 0 ? "green" : "red"}
-        />
-      </SimpleGrid>
-
-      {/* Per-Card Breakdown */}
-      <Heading size="sm" mb={3}>
-        Per-Card Breakdown
-      </Heading>
-      <Box overflowX="auto">
-        <Table.Root size="sm" variant="outline">
-          <Table.Header>
-            <Table.Row>
-              <Table.ColumnHeader>Card</Table.ColumnHeader>
-              <Table.ColumnHeader textAlign="right">Points</Table.ColumnHeader>
-              <Table.ColumnHeader textAlign="right">Point Value</Table.ColumnHeader>
-              <Table.ColumnHeader textAlign="right">Credits</Table.ColumnHeader>
-              <Table.ColumnHeader textAlign="right">Ann. Fee</Table.ColumnHeader>
-              <Table.ColumnHeader textAlign="right">Net Fee</Table.ColumnHeader>
-              <Table.ColumnHeader textAlign="right">SUB Value</Table.ColumnHeader>
-            </Table.Row>
-          </Table.Header>
-          <Table.Body>
-            {detail.per_card.map((card) => (
-              <Table.Row key={card.user_card_id}>
-                <Table.Cell>
-                  <VStack gap={0} align="start">
-                    <Text fontWeight="medium" fontSize="sm">
-                      {card.card_name}
-                    </Text>
-                    <Text fontSize="xs" color="fg.muted">
-                      ${fmt(card.total_allocated_spend_monthly)}/mo
-                    </Text>
-                  </VStack>
-                </Table.Cell>
-                <Table.Cell textAlign="right">{fmtPts(card.points_earned)}</Table.Cell>
-                <Table.Cell textAlign="right">${fmt(card.point_value_dollars)}</Table.Cell>
-                <Table.Cell textAlign="right">${fmt(card.credits_value)}</Table.Cell>
-                <Table.Cell textAlign="right">${fmt(card.annual_fee)}</Table.Cell>
-                <Table.Cell textAlign="right">
-                  <Text color={card.net_annual_fee > 0 ? "danger.fg" : "success.fg"}>
-                    ${fmt(card.net_annual_fee)}
-                  </Text>
-                </Table.Cell>
-                <Table.Cell textAlign="right">
-                  {card.sign_up_bonus ? (
-                    <VStack gap={0} align="end">
-                      <Text fontSize="sm">${fmt(card.sign_up_bonus_value)}</Text>
-                      <Badge
-                        size="sm"
-                        colorPalette={card.can_meet_sub_requirement ? "green" : "orange"}
-                      >
-                        {card.can_meet_sub_requirement ? "Achievable" : "May not meet req"}
-                      </Badge>
-                    </VStack>
-                  ) : (
-                    <Text color="fg.subtle" fontSize="sm">
-                      N/A
-                    </Text>
-                  )}
-                </Table.Cell>
-              </Table.Row>
-            ))}
-          </Table.Body>
-        </Table.Root>
-      </Box>
-
-      {/* Optimized Allocation Details */}
-      {isOptimized && allocation && (
-        <Box mt={6}>
-          <Heading size="sm" mb={3}>
-            Optimal Card Assignment per Category
-          </Heading>
-          <VStack gap={2} align="stretch">
-            {spendCategories.map((cat) => {
-              // Find which card gets 100% for this category
-              const assignedCardId = Object.entries(allocation).find(
-                ([, cats]) => (cats[cat.key] ?? 0) === 100
-              )?.[0];
-              const assignedCard = walletCards.find((wc) => wc.id === assignedCardId);
-              return (
-                <HStack
-                  key={cat.key}
-                  justifyContent="space-between"
-                  p={2}
-                  borderRadius="md"
-                  bg="bg.subtle"
+          <VStack gap={5} align="stretch">
+            {spendCategories.map((cat) => (
+              <Box key={cat.key}>
+                <Text fontSize="xs" fontWeight="500" color="fg.muted" mb={2}>
+                  {cat.label}
+                </Text>
+                <Flex
+                  bg="#000000"
+                  borderRadius="sm"
+                  px={4}
+                  py={3}
+                  borderBottomWidth="1px"
+                  borderColor="rgba(255,255,255,0.1)"
+                  _focusWithin={{ borderColor: "brand.400" }}
+                  align="center"
                 >
-                  <Text fontSize="sm">{cat.label}</Text>
-                  <HStack>
-                    <Text fontSize="sm" fontWeight="medium">
-                      {assignedCard?.nickname ?? assignedCard?.card.name ?? "None"}
-                    </Text>
-                    {assignedCard && (
-                      <Badge size="sm" colorPalette="blue">
-                        {getMultiplierLabel(assignedCard, cat.key)}
-                      </Badge>
-                    )}
-                  </HStack>
-                </HStack>
-              );
-            })}
+                  <Text fontSize="sm" color="fg.muted" mr={2}>$</Text>
+                  <input
+                    type="number"
+                    value={monthlySpend[cat.key] || ""}
+                    onChange={(e) => {
+                      const val = parseFloat(e.target.value) || 0;
+                      setMonthlySpend((prev) => ({ ...prev, [cat.key]: val }));
+                    }}
+                    placeholder="0"
+                    style={{
+                      background: "transparent",
+                      border: "none",
+                      outline: "none",
+                      color: "#ffffff",
+                      fontSize: "18px",
+                      fontWeight: 600,
+                      width: "100%",
+                    }}
+                  />
+                </Flex>
+              </Box>
+            ))}
           </VStack>
+
+          {/* Included Assets */}
+          <Box pt={6} mt={6} borderTopWidth="1px" borderColor="border.default">
+            <Text fontSize="xs" fontWeight="700" color="fg.muted" letterSpacing="0.2em" textTransform="uppercase" mb={4}>
+              Included Assets
+            </Text>
+            {loadingWallet ? (
+              <Spinner size="sm" />
+            ) : walletError ? (
+              <Text color="danger.300" fontSize="xs">{walletError}</Text>
+            ) : (
+              <Flex gap={2} flexWrap="wrap">
+                {walletCards.map((wc) => {
+                  const selected = selectedCards.has(wc.id);
+                  return (
+                    <Box
+                      key={wc.id}
+                      px={3}
+                      py={1.5}
+                      borderRadius="badge"
+                      bg={selected ? "#262626" : "transparent"}
+                      borderWidth="1px"
+                      borderColor={selected ? "rgba(255,255,255,0.15)" : "rgba(255,255,255,0.1)"}
+                      borderStyle={selected ? "solid" : "dashed"}
+                      color={selected ? "#ffffff" : "#adaaaa"}
+                      fontSize="2xs"
+                      fontWeight="700"
+                      cursor="pointer"
+                      opacity={selected ? 1 : 0.5}
+                      onClick={() => toggleCard(wc.id)}
+                      _hover={{ opacity: 1 }}
+                      transition="all 0.15s"
+                    >
+                      <HStack gap={2}>
+                        <Box w={1.5} h={1.5} borderRadius="full" bg={selected ? "success.300" : "fg.subtle"} />
+                        <Text>{wc.nickname ?? wc.card.name.split(" ").slice(0, 2).join(" ")}</Text>
+                      </HStack>
+                    </Box>
+                  );
+                })}
+              </Flex>
+            )}
+          </Box>
         </Box>
-      )}
+
+        {/* ─── Right Panel: Results ──────────────────────── */}
+        <Box flex={1} p={8} bg="bg.page">
+          {!results && !optimizedResults ? (
+            <Flex h="full" align="center" justify="center" direction="column" gap={4} opacity={0.4}>
+              <Text fontSize="4xl">📊</Text>
+              <Text fontSize="sm" color="fg.muted" textAlign="center" maxW="300px">
+                Enter your monthly spending and click "Run Analysis" to see optimized results.
+              </Text>
+            </Flex>
+          ) : (
+            <VStack gap={8} align="stretch">
+              {/* ─── Metrics Bar ─────────────────────────── */}
+              <SimpleGrid columns={3} gap={6}>
+                <MetricTile
+                  label="Total Projected Yield"
+                  value={`$${fmtK(optimizedResults?.detail.net_rewards_value ?? results?.detail.net_rewards_value ?? 0)}`}
+                  suffix="/yr"
+                  accent="success.300"
+                  subtext={optimizedResults && results ? `↑ +${Math.round(((optimizedResults.detail.net_rewards_value - results.detail.net_rewards_value) / Math.max(results.detail.net_rewards_value, 1)) * 100)}% vs Current` : undefined}
+                  subtextColor="success.300"
+                />
+                {/* HARDCODED: Efficiency score — needs API computation */}
+                <MetricTile
+                  label="Efficiency Score"
+                  value="94.2"
+                  suffix="/100"
+                  accent="fg.default"
+                  subtext="Optimal Allocation Found"
+                  subtextColor="brand.400"
+                />
+                <MetricTile
+                  label="Est. Points/Miles"
+                  value={fmtK(optimizedResults?.results.total_points ?? results?.results.total_points ?? 0)}
+                  accent="brand.400"
+                  /* HARDCODED: CPP valuation */
+                  subtext="Valuation: 1.45 cpp"
+                  subtextColor="fg.muted"
+                />
+              </SimpleGrid>
+
+              {/* ─── Chart + Path Comparison ──────────────── */}
+              <Flex gap={8} direction={{ base: "column", md: "row" }}>
+                {/* Reward Accumulation Chart Mock */}
+                <Box flex={3} bg="#131313" p={8} borderRadius="card" borderWidth="1px" borderColor="border.default">
+                  <Flex justify="space-between" align="center" mb={8}>
+                    <Text fontSize="sm" fontWeight="700" letterSpacing="-0.02em">
+                      Reward Accumulation by Category
+                    </Text>
+                    <HStack gap={4}>
+                      <HStack gap={1.5}>
+                        <Box w={2} h={2} borderRadius="full" bg="success.300" />
+                        <Text fontSize="2xs" color="fg.muted" fontWeight="700">Optimized</Text>
+                      </HStack>
+                      <HStack gap={1.5}>
+                        <Box w={2} h={2} borderRadius="full" bg="brand.400" />
+                        <Text fontSize="2xs" color="fg.muted" fontWeight="700">Current</Text>
+                      </HStack>
+                    </HStack>
+                  </Flex>
+                  {/* HARDCODED: Bar chart visualization */}
+                  <Flex h="192px" align="flex-end" gap={6} px={4}>
+                    {["Dining", "Grocery", "Travel", "Transit", "Other"].map((cat, i) => {
+                      const heights = [75, 60, 100, 15, 50];
+                      return (
+                        <Flex key={cat} flex={1} direction="column" align="center" gap={2}>
+                          <Flex direction="column" gap={1} justify="flex-end" h="full" w="full">
+                            <Box w="full" bg="rgba(63,255,139,0.15)" h={`${heights[i]}%`} borderRadius="sm" _hover={{ bg: "rgba(63,255,139,0.3)" }} transition="all 0.2s" cursor="pointer" />
+                          </Flex>
+                          <Text fontSize="2xs" color="fg.muted" fontWeight="500">{cat}</Text>
+                        </Flex>
+                      );
+                    })}
+                  </Flex>
+                </Box>
+
+                {/* Optimized Path Comparison */}
+                <VStack flex={2} gap={4} align="stretch">
+                  <Text fontSize="sm" fontWeight="700" letterSpacing="-0.02em" mb={2}>
+                    Optimized Path Comparison
+                  </Text>
+                  {/* HARDCODED: Path comparison combos — needs multi-wallet optimization (WS5 Mode 3) */}
+                  <PathCard
+                    label="Recommended Combo"
+                    cards={optimizedResults ? getTopCards(optimizedResults, walletCards) : "Best 2-Card Setup"}
+                    value={`$${fmtK(optimizedResults?.detail.net_rewards_value ?? 0)}`}
+                    isRecommended
+                  />
+                  <PathCard
+                    label="Current Setup"
+                    cards="Mixed Wallet"
+                    value={`$${fmtK(results?.detail.net_rewards_value ?? 0)}`}
+                  />
+                </VStack>
+              </Flex>
+
+              {/* ─── Category Allocation Matrix ───────────── */}
+              {optimizedResults?.allocation && (
+                <Box bg="#131313" borderRadius="card" overflow="hidden" borderWidth="1px" borderColor="border.default">
+                  <Box px={6} py={4} bg="bg.surface">
+                    <Text fontSize="xs" fontWeight="700" color="fg.muted" letterSpacing="0.2em" textTransform="uppercase">
+                      Category Allocation Matrix
+                    </Text>
+                  </Box>
+                  <Box overflowX="auto">
+                    <Table.Root size="sm">
+                      <Table.Header>
+                        <Table.Row>
+                          <Table.ColumnHeader px={6} py={4} fontSize="2xs" fontWeight="700" color="fg.muted" textTransform="uppercase" letterSpacing="0.1em">Spend Category</Table.ColumnHeader>
+                          <Table.ColumnHeader px={6} py={4} fontSize="2xs" fontWeight="700" color="fg.muted" textTransform="uppercase" letterSpacing="0.1em">Optimal Card</Table.ColumnHeader>
+                          <Table.ColumnHeader px={6} py={4} fontSize="2xs" fontWeight="700" color="fg.muted" textTransform="uppercase" letterSpacing="0.1em">Multiplier</Table.ColumnHeader>
+                          <Table.ColumnHeader px={6} py={4} fontSize="2xs" fontWeight="700" color="fg.muted" textTransform="uppercase" letterSpacing="0.1em" textAlign="right">Ann. Delta</Table.ColumnHeader>
+                        </Table.Row>
+                      </Table.Header>
+                      <Table.Body>
+                        {spendCategories.filter(cat => monthlySpend[cat.key] > 0).map((cat) => {
+                          const assignedCardId = Object.entries(optimizedResults.allocation).find(
+                            ([, cats]) => (cats[cat.key] ?? 0) === 100
+                          )?.[0];
+                          const assignedCard = walletCards.find((wc) => wc.id === assignedCardId);
+                          const version = assignedCard?.card.versions[0];
+                          const bonus = version?.categoryBonuses.find((b) => b.category === cat.key);
+                          const multiplier = bonus?.multiplier ?? version?.baseEarnRate.points_per_dollar ?? 1;
+
+                          return (
+                            <Table.Row key={cat.key} _hover={{ bg: "#000000" }} transition="all 0.15s">
+                              <Table.Cell px={6} py={4}>
+                                <Text fontWeight="600">{cat.label}</Text>
+                              </Table.Cell>
+                              <Table.Cell px={6} py={4}>
+                                <Text color="success.300" fontWeight="700">
+                                  {assignedCard?.nickname ?? assignedCard?.card.name.split(" ").slice(0, 3).join(" ") ?? "—"} ({multiplier}x)
+                                </Text>
+                              </Table.Cell>
+                              <Table.Cell px={6} py={4}>
+                                <Box
+                                  display="inline-block"
+                                  px={2}
+                                  py={0.5}
+                                  borderRadius="sm"
+                                  bg={multiplier > 1 ? "rgba(63,255,139,0.1)" : "rgba(255,255,255,0.05)"}
+                                >
+                                  <Text fontSize="2xs" fontWeight="700" color={multiplier > 1 ? "success.300" : "fg.muted"}>
+                                    {multiplier}x
+                                  </Text>
+                                </Box>
+                              </Table.Cell>
+                              <Table.Cell px={6} py={4} textAlign="right">
+                                <Text fontFamily="mono" color="success.300" fontWeight="600">
+                                  +${fmt(monthlySpend[cat.key] * (multiplier - 1) * 0.015 * 12)}
+                                </Text>
+                              </Table.Cell>
+                            </Table.Row>
+                          );
+                        })}
+                      </Table.Body>
+                    </Table.Root>
+                  </Box>
+                </Box>
+              )}
+            </VStack>
+          )}
+        </Box>
+      </Flex>
     </Box>
   );
 }
 
-// ─── Comparison Display ──────────────────────────────────────────
+// ─── Sub-Components ──────────────────────────────────────────────
 
-function ComparisonDisplay({
-  current,
-  optimized,
-  timeframeMonths,
-}: {
-  current: ScenarioOutput;
-  optimized: ScenarioOutput;
-  timeframeMonths: number;
-}) {
-  const pointsDiff = optimized.results.total_points - current.results.total_points;
-  const valueDiff = optimized.detail.net_rewards_value - current.detail.net_rewards_value;
-
-  return (
-    <Box
-      bg="bg.surface"
-      p={6}
-      borderRadius="card"
-      shadow="card"
-      borderWidth="2px"
-      borderColor="brand.muted"
-    >
-      <Heading size="md" mb={4}>
-        Comparison: Uniform vs. Optimized
-      </Heading>
-      <SimpleGrid columns={{ base: 1, md: 3 }} gap={4}>
-        <ComparisonStat
-          label="Total Points"
-          current={fmtPts(current.results.total_points)}
-          optimized={fmtPts(optimized.results.total_points)}
-          diff={`+${fmtPts(pointsDiff)}`}
-          positive={pointsDiff > 0}
-        />
-        <ComparisonStat
-          label="Point Value"
-          current={`$${fmt(current.results.total_cashback)}`}
-          optimized={`$${fmt(optimized.results.total_cashback)}`}
-          diff={`+$${fmt(optimized.results.total_cashback - current.results.total_cashback)}`}
-          positive={optimized.results.total_cashback > current.results.total_cashback}
-        />
-        <ComparisonStat
-          label="Net Rewards"
-          current={`$${fmt(current.detail.net_rewards_value)}`}
-          optimized={`$${fmt(optimized.detail.net_rewards_value)}`}
-          diff={`+$${fmt(valueDiff)}`}
-          positive={valueDiff > 0}
-        />
-      </SimpleGrid>
-    </Box>
-  );
-}
-
-// ─── Small Sub-Components ────────────────────────────────────────
-
-const STAT_COLORS: Record<string, { accent: string; bg: string }> = {
-  blue: { accent: "brand.400", bg: "bg.subtle" },
-  green: { accent: "success.300", bg: "bg.subtle" },
-  purple: { accent: "brand.300", bg: "bg.subtle" },
-  red: { accent: "danger.300", bg: "bg.subtle" },
-};
-
-function StatCard({
+function MetricTile({
   label,
   value,
+  suffix,
+  accent,
   subtext,
-  color,
+  subtextColor,
 }: {
   label: string;
   value: string;
-  subtext: string;
-  color: string;
+  suffix?: string;
+  accent: string;
+  subtext?: string;
+  subtextColor?: string;
 }) {
-  const c = STAT_COLORS[color] ?? STAT_COLORS.blue;
   return (
-    <Box p={4} borderRadius="card" borderWidth="1px" borderColor="border.default" bg={c.bg}>
-      <Text fontSize="xs" color="fg.muted" fontWeight="medium">
+    <Box bg="bg.subtle" p={6} borderRadius="card" position="relative" overflow="hidden">
+      <Text fontSize="2xs" fontWeight="700" color="fg.muted" letterSpacing="0.15em" textTransform="uppercase" mb={1}>
         {label}
       </Text>
-      <Text fontSize="xl" fontWeight="bold" color={c.accent}>
+      <Text fontSize="3xl" fontWeight="900" letterSpacing="-0.03em" color={accent}>
         {value}
+        {suffix && <Text as="span" fontSize="sm" fontWeight="500" color="fg.muted">{suffix}</Text>}
       </Text>
-      <Text fontSize="xs" color="fg.subtle">
-        {subtext}
-      </Text>
+      {subtext && (
+        <HStack mt={2} gap={1}>
+          <Text fontSize="2xs" fontWeight="700" color={subtextColor ?? "fg.muted"}>
+            {subtext}
+          </Text>
+        </HStack>
+      )}
     </Box>
   );
 }
 
-function ComparisonStat({
+function PathCard({
   label,
-  current,
-  optimized,
-  diff,
-  positive,
+  cards,
+  value,
+  isRecommended,
 }: {
   label: string;
-  current: string;
-  optimized: string;
-  diff: string;
-  positive: boolean;
+  cards: string;
+  value: string;
+  isRecommended?: boolean;
 }) {
   return (
-    <Box p={4} borderRadius="md" bg="bg.subtle">
-      <Text fontSize="xs" fontWeight="medium" color="fg.muted" mb={2}>
-        {label}
-      </Text>
-      <HStack justifyContent="space-between" mb={1}>
-        <Text fontSize="sm" color="fg.muted">
-          Current:
+    <Flex
+      p={4}
+      bg={isRecommended ? "rgba(63,255,139,0.05)" : "#131313"}
+      borderLeftWidth="4px"
+      borderLeftColor={isRecommended ? "success.300" : "rgba(255,255,255,0.1)"}
+      borderRadius="card"
+      justify="space-between"
+      align="center"
+    >
+      <Box>
+        <Text fontSize="2xs" fontWeight="700" color={isRecommended ? "success.300" : "fg.muted"} textTransform="uppercase">
+          {label}
         </Text>
-        <Text fontSize="sm">{current}</Text>
-      </HStack>
-      <HStack justifyContent="space-between" mb={1}>
-        <Text fontSize="sm" color="fg.muted">
-          Optimized:
+        <Text fontSize="sm" fontWeight="600">{cards}</Text>
+      </Box>
+      <Box textAlign="right">
+        <Text fontSize="lg" fontWeight="900" letterSpacing="-0.03em" color={isRecommended ? "fg.default" : "fg.muted"}>
+          {value}
         </Text>
-        <Text fontSize="sm" fontWeight="bold">
-          {optimized}
-        </Text>
-      </HStack>
-      <Separator my={1} />
-      <Text
-        fontSize="sm"
-        fontWeight="bold"
-        textAlign="right"
-        color={positive ? "success.fg" : "fg.muted"}
-      >
-        {positive ? diff : "No improvement"}
-      </Text>
-    </Box>
+        <Text fontSize="2xs" color="fg.muted">Projected Yield</Text>
+      </Box>
+    </Flex>
   );
 }
 
-function getMultiplierLabel(wc: WalletCardData, category: string): string {
-  const version = wc.card.versions[0];
-  if (!version) return "1x";
-  const bonus = version.categoryBonuses.find((b) => b.category === category);
-  if (bonus) return `${bonus.multiplier}x`;
-  return `${version.baseEarnRate.points_per_dollar}x`;
+function getTopCards(opt: ScenarioOutput & { allocation: Allocation }, walletCards: WalletCardData[]): string {
+  const cardIds = Object.keys(opt.allocation);
+  const usedCards = cardIds.filter(id => {
+    const cats = opt.allocation[id];
+    return Object.values(cats).some(v => v === 100);
+  });
+  return usedCards
+    .map(id => walletCards.find(wc => wc.id === id)?.card.name.split(" ").slice(0, 2).join(" ") ?? "Card")
+    .join(" + ") || "Optimized Combo";
 }

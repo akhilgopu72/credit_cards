@@ -49,10 +49,18 @@
 - **Hardcoded in Stitch**: MCC code display, payment method badges, acceptance status
 
 ### Scenario Modeling (`apps/web/src/app/dashboard/scenarios/page.tsx`)
-- **NEEDS FULL REDESIGN** from `scenario_modeling/code.html` — completely different layout
-- Stitch uses split-panel: left 1/3 for spend inputs, right 2/3 for results visualization
-- **Stitch hardcodes to track**: Efficiency Score (94.2/100), "Optimal Allocation Found", reward accumulation stacked bar chart, "Optimized Path Comparison" showing 3 wallet combos with projected yields, "Category Allocation Matrix" table with current vs optimal card + multiplier delta + annual delta
-- **API needed**: `POST /api/scenarios?action=optimize` already exists but response needs enrichment with efficiency score, path comparison, and per-category deltas
+- **REDESIGNED** to Stitch split-panel layout (left inputs, right results)
+- **Already API-backed**: Projected yield, total points, optimized allocation, per-category card assignment
+- **Hardcoded — needs API**:
+
+| Data | Current Value | API Needed |
+|------|--------------|------------|
+| Efficiency Score | Static "94.2/100" | New field in optimize response: compute from `(optimized_value / theoretical_max) * 100` |
+| "Optimal Allocation Found" | Static text | Derive from whether optimize found improvements vs current |
+| CPP Valuation "1.45 cpp" | Static | Already have `point_valuations` table — use weighted avg across user's cards |
+| Reward Accumulation chart bars | Static bar heights [75,60,100,15,50] | Compute from actual per-category points earned in optimization response |
+| Path Comparison "All-In Chase" combo | Not shown (only recommended + current) | WS5 Mode 3: combinatorial optimizer evaluating multiple wallet strategies |
+| Ann. Delta in allocation matrix | Rough estimate `spend * (mult-1) * 0.015 * 12` | Use actual CPP from point_valuations for precise delta calculation |
 
 ### Card Recommendations (`apps/web/src/app/dashboard/recommendations/page.tsx`)
 - **NEEDS FULL REDESIGN** from `card_recommendations/code.html` — different layout
