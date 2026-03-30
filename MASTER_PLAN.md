@@ -5,7 +5,7 @@
 
 > **Revenue Model**: Affiliate referral commissions on credit card sign-ups, premium subscription tiers.
 
-> **Prototype Target**: April 15, 2026
+> **Prototype Target**: June 1, 2026
 
 ---
 
@@ -396,8 +396,8 @@ Sign Up → Add Cards to Wallet → See Dashboard (offers, credits, optimization
   - [x] Upcoming annual fee dates
   - [x] Card summaries with issuer badges
 - [x] Build offers page with filtering/sorting by issuer, value, expiry (`apps/web/src/app/dashboard/offers/page.tsx`)
-- [ ] Build card detail view
-- [ ] Responsive design for mobile
+- [x] Build card detail view (`apps/web/src/app/dashboard/cards/[slug]/page.tsx`)
+- [x] Responsive design + polish (Merchants, Scenarios, Recommendations refactored to semantic theme tokens, responsive flex/grid, mobile-friendly tables)
 
 ---
 
@@ -566,14 +566,18 @@ Mode 1: "Optimize My Wallet"              Mode 2: "Recommend Cards"             
 - [ ] Factor in application rules (Chase 5/24, Amex once-per-lifetime) as constraints
 
 **Offer Schema Fixes** (needed for accurate rewards):
-- [ ] Split `value_type: "points"` into `"points_multiplier"` and `"points_flat"`
-- [ ] Fix Amex points-per-dollar parsing
-- [ ] Fix Capital One scraper to tag multipliers vs flat amounts at parse time
-- [ ] Add `use_limit INT NULLABLE` column to offers table
+- [x] Split `value_type: "points"` into `"points_multiplier"` and `"points_flat"`
+  - Schema already supported both; deprecated old `"points"` enum with backwards-compat fallback in rewards calculator
+  - Amex scraper: already parsed correctly into `points_multiplier` / `points_flat`
+  - Capital One scraper: already parsed correctly (multiplier miles vs flat miles)
+  - Chase scraper: added `points_multiplier` detection (`/(\d+)[Xx]\s*(?:bonus\s+)?(?:points|pts)/i`) + updated `offerType` derivation
+- [x] Fix Amex points-per-dollar parsing (already correct — `parseOfferDescription()` handles both per-dollar and flat points)
+- [x] Fix Capital One scraper to tag multipliers vs flat amounts at parse time (already correct — `parseValueText()` distinguishes "4X miles" vs "4,000 miles")
+- [x] Add `use_limit INT NULLABLE` column to offers table (already in schema + Zod validation + Amex scraper extracts it)
 
 **Rewards Calculation Engine** (`rewards-calculator.ts` — enhances existing):
-- [ ] `calculateTransactionRewards(transaction, card, activeOffers) → RewardResult`
-- [ ] Offer bonus rewards by type (fixed, percentage, points_multiplier, points_flat)
+- [x] `calculateTransactionRewards(transaction, card, activeOffers) → RewardResult`
+- [x] Offer bonus rewards by type (fixed, percentage, points_multiplier, points_flat)
 - [ ] Batch mode: `calculateBatchRewards(transactions[]) → { perTransaction[], summary }`
 - [ ] "Best card" per transaction: rank all cards by total reward
 
@@ -809,7 +813,7 @@ award_sweet_spots (program, route_type, cabin, points_required, typical_cash_val
 
 ---
 
-## 5. Prototype Scope (Target: April 15, 2026) <a name="prototype-scope"></a>
+## 5. Prototype Scope (Target: June 1, 2026) <a name="prototype-scope"></a>
 
 ### Week 1: Foundation (Feb 19 - Feb 25)
 - [x] Create master plan
@@ -877,8 +881,9 @@ award_sweet_spots (program, route_type, cabin, points_required, typical_cash_val
 - [x] **Bugfix**: Fixed `isDbConfigured()` excluding local dev DB — was routing to fallback layer with random UUIDs
 - [x] **Bugfix**: Fixed cards search API — `ilike` on enum column (`issuer`) caused PostgreSQL error; removed issuer from text search (exact filter still works via `?issuer=` param)
 - [x] **Testing**: API endpoint verification — all 7 public endpoints passing (cards list/search/filter/slug, merchants search/slug, recommend)
-- [ ] **WS5**: Offer schema fixes (points_multiplier vs points_flat) for accurate rewards
-- [ ] **WS2**: Dashboard polish + mobile responsive
+- [x] **WS5**: Offer schema fixes — split points into `points_multiplier`/`points_flat` across all 3 scrapers + rewards calculator fallback for deprecated `"points"` enum
+- [x] **WS2**: Dashboard polish — Merchants, Scenarios, Recommendations pages refactored to semantic theme tokens (`bg.surface`, `fg.muted`, `success.fg`, `danger.fg`, `brand.fg`, etc.), responsive flex/grid, mobile-friendly tables
+- [x] **Testing**: Chrome browser visual verification — all polished pages rendering correctly (search results, card rankings, scenario inputs, recommendation results with MiniStat cards)
 - [ ] **WS3**: Build offer expiration/cleanup logic
 - [ ] User onboarding flow improvements
 - [x] **Testing**: E2E API testing — wallet CRUD (add/update/delete/duplicate-guard/error-cases), scenario calculate/optimize/net-value/save/list, dashboard stats (cards/credits/fees/summaries)

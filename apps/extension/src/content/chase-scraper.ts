@@ -1,4 +1,5 @@
 import type { ScrapedOffer, ExtensionMessage } from "@cardmax/shared";
+import { scrapeAndSendTransactions, startTransactionObserver } from "./chase-transaction-scraper";
 
 /**
  * Chase Offer Scraper
@@ -22,7 +23,29 @@ function createSourceHash(offer: Partial<ScrapedOffer>): string {
   return `chase_${Math.abs(hash).toString(36)}`;
 }
 
+/**
+ * Check if we're on a card activity/summary page (not an offers page).
+ * If so, skip offer scraping — the transaction scraper handles these pages.
+ */
+function isCardActivityPage(): boolean {
+  // Card activity pages have a breadcrumb like "Account: Ink Preferred (...1327)"
+  const breadcrumb = document.querySelector(".breadcrumb-label");
+  if (breadcrumb && /Account:/i.test(breadcrumb.textContent || "")) return true;
+  // Also check for the activity table
+  if (document.querySelector('table.mds-activity-table')) return true;
+  // Check hash route for card summary pages
+  if (window.location.hash.includes("/summary/")) return true;
+  return false;
+}
+
 async function scrapeChaseOffers(): Promise<ScrapedOffer[]> {
+  // On card activity pages, scrape transactions instead of offers
+  if (isCardActivityPage()) {
+    console.log("[CardMax] On card activity page, skipping offer scrape — running transaction scraper");
+    startTransactionObserver();
+    return [];
+  }
+
   chrome.runtime.sendMessage({
     type: "SCRAPE_STATUS",
     payload: { issuer: "chase", status: "started" },
@@ -170,7 +193,12 @@ function scrapeOfferButtons(cardName?: string): ScrapedOffer[] {
         merchantName,
         title: valueText,
         description: valueText,
-        offerType: valueType === "percentage" ? "cashback" : "statement_credit",
+        offerType:
+          valueType === "percentage"
+            ? "cashback"
+            : valueType === "points_multiplier" || valueType === "points_flat"
+              ? "points_bonus"
+              : "statement_credit",
         value,
         valueType,
         requiresAdd: !isAdded,
@@ -191,7 +219,7 @@ function scrapeOfferButtons(cardName?: string): ScrapedOffer[] {
 
 function parseValueText(text: string): {
   value: number;
-  valueType: "percentage" | "fixed" | "points_flat";
+  valueType: "percentage" | "fixed" | "points_multiplier" | "points_flat";
 } {
   if (!text) return { value: 0, valueType: "fixed" };
 
@@ -201,6 +229,15 @@ function parseValueText(text: string): {
   const dollarMatch = text.match(/\$([\d,]+(?:\.\d+)?)/);
   if (dollarMatch) {
     return { value: parseFloat(dollarMatch[1].replace(/,/g, "")), valueType: "fixed" };
+  }
+
+  // Multiplier-based points: "3X points", "5x bonus points", "2X pts"
+  const multiplierMatch = text.match(/(\d+)[Xx]\s*(?:bonus\s+)?(?:points|pts)/i);
+  if (multiplierMatch) {
+    return {
+      value: parseInt(multiplierMatch[1], 10),
+      valueType: "points_multiplier",
+    };
   }
 
   const pointsMatch = text.match(/([\d,]+)\s*(?:points|pts)/i);
@@ -251,6 +288,11 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     scrapeChaseOffers().then((offers) => {
       sendResponse({ success: true, count: offers.length, offers });
     });
+    return true;
+  }
+  if (message.type === "SCRAPE_TRANSACTIONS" && message.payload?.issuer === "chase") {
+    scrapeAndSendTransactions();
+    sendResponse({ success: true });
     return true;
   }
 });

@@ -257,18 +257,18 @@ export default function ScenariosPage() {
     <VStack gap={8} align="stretch">
       <Box>
         <Heading size="xl">Scenario Modeling</Heading>
-        <Text color="gray.600" mt={1}>
+        <Text color="fg.muted" mt={1}>
           Model different spend strategies and see how many points you could
           earn.
         </Text>
       </Box>
 
       {/* Monthly Spend Input */}
-      <Box bg="white" p={6} borderRadius="lg" shadow="sm">
-        <HStack justifyContent="space-between" mb={4}>
+      <Box bg="bg.surface" p={6} borderRadius="card" shadow="card">
+        <HStack justifyContent="space-between" mb={4} flexWrap="wrap" gap={3}>
           <Heading size="md">Monthly Spend by Category</Heading>
           <HStack>
-            <Text fontSize="sm" color="gray.500">
+            <Text fontSize="sm" color="fg.muted">
               Timeframe:
             </Text>
             <Input
@@ -282,19 +282,19 @@ export default function ScenariosPage() {
               min={1}
               max={120}
             />
-            <Text fontSize="sm" color="gray.500">
+            <Text fontSize="sm" color="fg.muted">
               months
             </Text>
           </HStack>
         </HStack>
         <VStack gap={3} align="stretch">
           {spendCategories.map((cat) => (
-            <HStack key={cat.key} justifyContent="space-between">
-              <Text w="200px" fontSize="sm">
+            <HStack key={cat.key} justifyContent="space-between" flexWrap="wrap" gap={2}>
+              <Text w={{ base: "full", sm: "200px" }} fontSize="sm">
                 {cat.label}
               </Text>
               <HStack>
-                <Text color="gray.500">$</Text>
+                <Text color="fg.muted">$</Text>
                 <Input
                   type="number"
                   placeholder="0"
@@ -322,23 +322,23 @@ export default function ScenariosPage() {
       </Box>
 
       {/* Card Selection */}
-      <Box bg="white" p={6} borderRadius="lg" shadow="sm">
+      <Box bg="bg.surface" p={6} borderRadius="card" shadow="card">
         <Heading size="md" mb={4}>
           Cards to Compare
         </Heading>
         {loadingWallet ? (
           <HStack justifyContent="center" py={4}>
             <Spinner size="sm" />
-            <Text color="gray.500" fontSize="sm">
+            <Text color="fg.muted" fontSize="sm">
               Loading wallet...
             </Text>
           </HStack>
         ) : walletError ? (
-          <Text color="red.500" fontSize="sm">
+          <Text color="danger.fg" fontSize="sm">
             {walletError}
           </Text>
         ) : walletCards.length === 0 ? (
-          <Text color="gray.500" fontSize="sm">
+          <Text color="fg.muted" fontSize="sm">
             No cards in your wallet. Add cards from the{" "}
             <Text as="span" fontWeight="bold">
               My Cards
@@ -355,12 +355,12 @@ export default function ScenariosPage() {
                   key={wc.id}
                   p={3}
                   borderWidth="1px"
-                  borderColor={isSelected ? "blue.300" : "gray.200"}
+                  borderColor={isSelected ? "brand.emphasized" : "border.default"}
                   borderRadius="md"
-                  bg={isSelected ? "blue.50" : "white"}
+                  bg={isSelected ? "brand.subtle" : "bg.surface"}
                   cursor="pointer"
                   onClick={() => toggleCard(wc.id)}
-                  _hover={{ borderColor: "blue.300" }}
+                  _hover={{ borderColor: "brand.emphasized" }}
                 >
                   <HStack justifyContent="space-between">
                     <HStack>
@@ -376,7 +376,7 @@ export default function ScenariosPage() {
                         <Text fontWeight="medium" fontSize="sm">
                           {getCardLabel(wc)}
                         </Text>
-                        <Text fontSize="xs" color="gray.500">
+                        <Text fontSize="xs" color="fg.muted">
                           {wc.card.issuer.replace(/_/g, " ").toUpperCase()} -{" "}
                           {wc.card.network.toUpperCase()}
                         </Text>
@@ -398,7 +398,7 @@ export default function ScenariosPage() {
                 </Box>
               );
             })}
-            <Text fontSize="xs" color="gray.500" mt={1}>
+            <Text fontSize="xs" color="fg.muted" mt={1}>
               {selectedCards.size} card{selectedCards.size !== 1 ? "s" : ""}{" "}
               selected
             </Text>
@@ -408,15 +408,15 @@ export default function ScenariosPage() {
 
       {/* Error */}
       {error && (
-        <Box bg="red.50" p={4} borderRadius="md" borderWidth="1px" borderColor="red.200">
-          <Text color="red.600" fontSize="sm">
+        <Box bg="danger.subtle" p={4} borderRadius="md" borderWidth="1px" borderColor="danger.muted">
+          <Text color="danger.fg" fontSize="sm">
             {error}
           </Text>
         </Box>
       )}
 
       {/* Actions */}
-      <HStack justifyContent="flex-end" gap={3}>
+      <HStack justifyContent="flex-end" gap={3} flexWrap="wrap">
         <Button
           variant="outline"
           colorPalette="green"
@@ -497,8 +497,8 @@ function ResultsDisplay({
   const { results, detail } = output;
 
   return (
-    <Box bg="white" p={6} borderRadius="lg" shadow="sm">
-      <HStack justifyContent="space-between" mb={4}>
+    <Box bg="bg.surface" p={6} borderRadius="card" shadow="card">
+      <HStack justifyContent="space-between" mb={4} flexWrap="wrap" gap={2}>
         <Heading size="md">{title}</Heading>
         {onSave && (
           <Button size="sm" variant="outline" onClick={onSave}>
@@ -560,7 +560,7 @@ function ResultsDisplay({
                     <Text fontWeight="medium" fontSize="sm">
                       {card.card_name}
                     </Text>
-                    <Text fontSize="xs" color="gray.500">
+                    <Text fontSize="xs" color="fg.muted">
                       ${fmt(card.total_allocated_spend_monthly)}/mo
                     </Text>
                   </VStack>
@@ -570,7 +570,7 @@ function ResultsDisplay({
                 <Table.Cell textAlign="right">${fmt(card.credits_value)}</Table.Cell>
                 <Table.Cell textAlign="right">${fmt(card.annual_fee)}</Table.Cell>
                 <Table.Cell textAlign="right">
-                  <Text color={card.net_annual_fee > 0 ? "red.500" : "green.500"}>
+                  <Text color={card.net_annual_fee > 0 ? "danger.fg" : "success.fg"}>
                     ${fmt(card.net_annual_fee)}
                   </Text>
                 </Table.Cell>
@@ -586,7 +586,7 @@ function ResultsDisplay({
                       </Badge>
                     </VStack>
                   ) : (
-                    <Text color="gray.400" fontSize="sm">
+                    <Text color="fg.subtle" fontSize="sm">
                       N/A
                     </Text>
                   )}
@@ -616,7 +616,7 @@ function ResultsDisplay({
                   justifyContent="space-between"
                   p={2}
                   borderRadius="md"
-                  bg="gray.50"
+                  bg="bg.subtle"
                 >
                   <Text fontSize="sm">{cat.label}</Text>
                   <HStack>
@@ -655,12 +655,12 @@ function ComparisonDisplay({
 
   return (
     <Box
-      bg="white"
+      bg="bg.surface"
       p={6}
-      borderRadius="lg"
-      shadow="sm"
+      borderRadius="card"
+      shadow="card"
       borderWidth="2px"
-      borderColor="blue.200"
+      borderColor="brand.muted"
     >
       <Heading size="md" mb={4}>
         Comparison: Uniform vs. Optimized
@@ -694,6 +694,13 @@ function ComparisonDisplay({
 
 // ─── Small Sub-Components ────────────────────────────────────────
 
+const STAT_COLORS: Record<string, { accent: string; bg: string }> = {
+  blue: { accent: "brand.400", bg: "bg.subtle" },
+  green: { accent: "success.300", bg: "bg.subtle" },
+  purple: { accent: "brand.300", bg: "bg.subtle" },
+  red: { accent: "danger.300", bg: "bg.subtle" },
+};
+
 function StatCard({
   label,
   value,
@@ -705,15 +712,16 @@ function StatCard({
   subtext: string;
   color: string;
 }) {
+  const c = STAT_COLORS[color] ?? STAT_COLORS.blue;
   return (
-    <Box p={4} borderRadius="md" borderWidth="1px" borderColor={`${color}.200`} bg={`${color}.50`}>
-      <Text fontSize="xs" color={`${color}.600`} fontWeight="medium">
+    <Box p={4} borderRadius="card" borderWidth="1px" borderColor="border.default" bg={c.bg}>
+      <Text fontSize="xs" color="fg.muted" fontWeight="medium">
         {label}
       </Text>
-      <Text fontSize="xl" fontWeight="bold" color={`${color}.700`}>
+      <Text fontSize="xl" fontWeight="bold" color={c.accent}>
         {value}
       </Text>
-      <Text fontSize="xs" color={`${color}.500`}>
+      <Text fontSize="xs" color="fg.subtle">
         {subtext}
       </Text>
     </Box>
@@ -734,18 +742,18 @@ function ComparisonStat({
   positive: boolean;
 }) {
   return (
-    <Box p={4} borderRadius="md" bg="gray.50">
-      <Text fontSize="xs" fontWeight="medium" color="gray.600" mb={2}>
+    <Box p={4} borderRadius="md" bg="bg.subtle">
+      <Text fontSize="xs" fontWeight="medium" color="fg.muted" mb={2}>
         {label}
       </Text>
       <HStack justifyContent="space-between" mb={1}>
-        <Text fontSize="sm" color="gray.500">
+        <Text fontSize="sm" color="fg.muted">
           Current:
         </Text>
         <Text fontSize="sm">{current}</Text>
       </HStack>
       <HStack justifyContent="space-between" mb={1}>
-        <Text fontSize="sm" color="gray.500">
+        <Text fontSize="sm" color="fg.muted">
           Optimized:
         </Text>
         <Text fontSize="sm" fontWeight="bold">
@@ -757,7 +765,7 @@ function ComparisonStat({
         fontSize="sm"
         fontWeight="bold"
         textAlign="right"
-        color={positive ? "green.600" : "gray.500"}
+        color={positive ? "success.fg" : "fg.muted"}
       >
         {positive ? diff : "No improvement"}
       </Text>

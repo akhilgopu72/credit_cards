@@ -154,25 +154,25 @@ export default function RecommendationsPage() {
     <VStack gap={8} align="stretch">
       <Box>
         <Heading size="xl">Card Recommendations</Heading>
-        <Text color="gray.600" mt={1}>
+        <Text color="fg.muted" mt={1}>
           Find the best credit cards for your spending profile. We evaluate every
           card in our database and rank them by net value.
         </Text>
       </Box>
 
       {/* Monthly Spend Input */}
-      <Box bg="white" p={6} borderRadius="lg" shadow="sm">
+      <Box bg="bg.surface" p={6} borderRadius="card" shadow="card">
         <Heading size="md" mb={4}>
           Monthly Spend by Category
         </Heading>
         <VStack gap={3} align="stretch">
           {spendCategories.map((cat) => (
-            <HStack key={cat.key} justifyContent="space-between">
-              <Text w="200px" fontSize="sm">
+            <HStack key={cat.key} justifyContent="space-between" flexWrap="wrap" gap={2}>
+              <Text w={{ base: "full", sm: "200px" }} fontSize="sm">
                 {cat.label}
               </Text>
               <HStack>
-                <Text color="gray.500">$</Text>
+                <Text color="fg.muted">$</Text>
                 <Input
                   type="number"
                   placeholder="0"
@@ -198,10 +198,10 @@ export default function RecommendationsPage() {
       </Box>
 
       {/* Perk Preferences */}
-      <Box bg="white" p={6} borderRadius="lg" shadow="sm">
+      <Box bg="bg.surface" p={6} borderRadius="card" shadow="card">
         <VStack align="stretch" gap={1} mb={4}>
           <Heading size="md">Perk Preferences</Heading>
-          <Text fontSize="sm" color="gray.500">
+          <Text fontSize="sm" color="fg.muted">
             Toggle which card perks you would actually use. Statement credits
             and travel credits are always counted.
           </Text>
@@ -211,7 +211,7 @@ export default function RecommendationsPage() {
             <HStack key={perk.key} justifyContent="space-between">
               <VStack gap={0} align="start">
                 <Text fontSize="sm">{perk.label}</Text>
-                <Text fontSize="xs" color="gray.500">
+                <Text fontSize="xs" color="fg.muted">
                   {perk.description}
                 </Text>
               </VStack>
@@ -235,9 +235,9 @@ export default function RecommendationsPage() {
       </Box>
 
       {/* Actions */}
-      <HStack justifyContent="space-between">
+      <HStack justifyContent="space-between" flexWrap="wrap" gap={3}>
         <HStack gap={3}>
-          <Text fontSize="sm" color="gray.600">
+          <Text fontSize="sm" color="fg.muted">
             Sort by:
           </Text>
           <Button
@@ -269,8 +269,8 @@ export default function RecommendationsPage() {
 
       {/* Error */}
       {error && (
-        <Box bg="red.50" p={4} borderRadius="md" borderWidth="1px" borderColor="red.200">
-          <Text color="red.600" fontSize="sm">
+        <Box bg="danger.subtle" p={4} borderRadius="md" borderWidth="1px" borderColor="danger.muted">
+          <Text color="danger.fg" fontSize="sm">
             {error}
           </Text>
         </Box>
@@ -289,7 +289,7 @@ export default function RecommendationsPage() {
                   {compareIds.size}/3 selected for comparison
                 </Badge>
               )}
-              <Text fontSize="sm" color="gray.500">
+              <Text fontSize="sm" color="fg.muted">
                 ${fmt(results.total_monthly_spend)}/mo total spend
               </Text>
             </HStack>
@@ -354,19 +354,19 @@ function CardRecommendation({
 
   return (
     <Box
-      bg="white"
-      borderRadius="lg"
-      shadow="sm"
+      bg="bg.surface"
+      borderRadius="card"
+      shadow="card"
       overflow="hidden"
       borderWidth={isComparing ? "2px" : "0"}
-      borderColor={isComparing ? "purple.300" : "transparent"}
+      borderColor={isComparing ? "brand.400" : "transparent"}
     >
       {/* Main row */}
       <Box
         p={5}
         cursor="pointer"
         onClick={onToggle}
-        _hover={{ bg: "gray.50" }}
+        _hover={{ bg: "bg.subtle" }}
         transition="background 0.15s"
       >
         <HStack justifyContent="space-between" align="start">
@@ -376,7 +376,7 @@ function CardRecommendation({
               w={8}
               h={8}
               borderRadius="full"
-              bg={rank <= 3 ? `${palette}.100` : "gray.100"}
+              bg={rank <= 3 ? "bg.muted" : "bg.subtle"}
               display="flex"
               alignItems="center"
               justifyContent="center"
@@ -386,7 +386,7 @@ function CardRecommendation({
               <Text
                 fontSize="sm"
                 fontWeight="bold"
-                color={rank <= 3 ? `${palette}.700` : "gray.600"}
+                color={rank <= 3 ? "fg.default" : "fg.muted"}
               >
                 {rank}
               </Text>
@@ -403,10 +403,10 @@ function CardRecommendation({
                 </Badge>
               </HStack>
               <HStack gap={4} flexWrap="wrap">
-                <Text fontSize="xs" color="gray.500">
+                <Text fontSize="xs" color="fg.muted">
                   {card.network.toUpperCase()}
                 </Text>
-                <Text fontSize="xs" color="gray.500">
+                <Text fontSize="xs" color="fg.muted">
                   Annual fee: ${fmt(card.annual_fee)}
                 </Text>
                 {card.sign_up_bonus && card.can_meet_sub_requirement && (
@@ -424,11 +424,11 @@ function CardRecommendation({
               <Text
                 fontSize="xl"
                 fontWeight="bold"
-                color={isPositive ? "green.600" : "red.500"}
+                color={isPositive ? "success.fg" : "danger.fg"}
               >
                 {isPositive ? "+" : ""}${fmt(netValue)}
               </Text>
-              <Text fontSize="xs" color="gray.500">
+              <Text fontSize="xs" color="fg.muted">
                 {sortByYear1 ? "year 1 net value" : "ongoing/year"}
               </Text>
             </VStack>
@@ -442,7 +442,7 @@ function CardRecommendation({
                 <Checkbox.HiddenInput />
                 <Checkbox.Control />
                 <Checkbox.Label>
-                  <Text fontSize="xs" color="gray.500">Compare</Text>
+                  <Text fontSize="xs" color="fg.muted">Compare</Text>
                 </Checkbox.Label>
               </Checkbox.Root>
             </Box>
@@ -476,7 +476,7 @@ function CardRecommendation({
               .filter((cr) => cr.monthly_spend > 0)
               .sort((a, b) => b.dollar_value_annual - a.dollar_value_annual)
               .map((cr) => (
-                <HStack key={cr.category} justifyContent="space-between" px={2} py={1.5} bg="gray.50" borderRadius="md">
+                <HStack key={cr.category} justifyContent="space-between" px={2} py={1.5} bg="bg.subtle" borderRadius="md" flexWrap="wrap">
                   <HStack gap={3}>
                     <Text fontSize="sm" w="160px">
                       {formatCategory(cr.category)}
@@ -491,7 +491,7 @@ function CardRecommendation({
                     )}
                   </HStack>
                   <HStack gap={4}>
-                    <Text fontSize="xs" color="gray.500">
+                    <Text fontSize="xs" color="fg.muted">
                       {fmtPts(cr.points_annual)} pts
                     </Text>
                     <Text fontSize="sm" fontWeight="medium">
@@ -513,7 +513,7 @@ function CardRecommendation({
                   .filter((b) => b.annual_value > 0)
                   .sort((a, b) => b.annual_value - a.annual_value)
                   .map((b, i) => (
-                    <HStack key={i} justifyContent="space-between" px={2} py={1.5} bg="gray.50" borderRadius="md">
+                    <HStack key={i} justifyContent="space-between" px={2} py={1.5} bg="bg.subtle" borderRadius="md" flexWrap="wrap">
                       <HStack gap={2}>
                         <Text fontSize="sm">{b.name}</Text>
                         <Badge
@@ -540,7 +540,7 @@ function CardRecommendation({
                       <Text
                         fontSize="sm"
                         fontWeight="medium"
-                        color={b.included ? "inherit" : "gray.400"}
+                        color={b.included ? "inherit" : "fg.subtle"}
                         textDecoration={b.included ? "none" : "line-through"}
                       >
                         ${fmt(b.annual_value)}/yr
@@ -553,16 +553,16 @@ function CardRecommendation({
 
           {/* Sign-up bonus detail */}
           {card.sign_up_bonus && (
-            <Box bg="blue.50" p={4} borderRadius="md" mb={4}>
+            <Box bg="brand.subtle" p={4} borderRadius="md" mb={4}>
               <HStack justifyContent="space-between" mb={1}>
-                <Text fontSize="sm" fontWeight="bold" color="blue.700">
+                <Text fontSize="sm" fontWeight="bold" color="brand.fg">
                   Sign-Up Bonus
                 </Text>
-                <Text fontSize="sm" fontWeight="bold" color="blue.700">
+                <Text fontSize="sm" fontWeight="bold" color="brand.fg">
                   ${fmt(card.sign_up_bonus_value)}
                 </Text>
               </HStack>
-              <Text fontSize="xs" color="blue.600">
+              <Text fontSize="xs" color="brand.emphasized">
                 Earn {fmtPts(card.sign_up_bonus.points)} {card.sign_up_bonus.currency} after
                 spending ${fmt(card.sign_up_bonus.spend_requirement)} in{" "}
                 {card.sign_up_bonus.timeframe_months} months
@@ -580,7 +580,7 @@ function CardRecommendation({
           )}
 
           {/* Value summary */}
-          <Box bg="gray.50" p={4} borderRadius="md">
+          <Box bg="bg.subtle" p={4} borderRadius="md">
             <Heading size="sm" mb={3}>
               Value Summary
             </Heading>
@@ -607,7 +607,7 @@ function CardRecommendation({
               )}
               <HStack justifyContent="space-between">
                 <Text fontSize="sm">Annual fee</Text>
-                <Text fontSize="sm" fontWeight="medium" color="red.500">
+                <Text fontSize="sm" fontWeight="medium" color="danger.fg">
                   -${fmt(card.annual_fee)}
                 </Text>
               </HStack>
@@ -619,7 +619,7 @@ function CardRecommendation({
                 <Text
                   fontSize="sm"
                   fontWeight="bold"
-                  color={card.net_value_year1 >= 0 ? "green.600" : "red.500"}
+                  color={card.net_value_year1 >= 0 ? "success.fg" : "danger.fg"}
                 >
                   ${fmt(card.net_value_year1)}
                 </Text>
@@ -631,7 +631,7 @@ function CardRecommendation({
                 <Text
                   fontSize="sm"
                   fontWeight="bold"
-                  color={card.net_value_ongoing >= 0 ? "green.600" : "red.500"}
+                  color={card.net_value_ongoing >= 0 ? "success.fg" : "danger.fg"}
                 >
                   ${fmt(card.net_value_ongoing)}/yr
                 </Text>
@@ -660,6 +660,13 @@ function CardRecommendation({
 
 // ─── Small Sub-Components ────────────────────────────────────────
 
+const MINI_STAT_COLORS: Record<string, string> = {
+  blue: "brand.400",
+  green: "success.300",
+  purple: "brand.300",
+  red: "danger.300",
+};
+
 function MiniStat({
   label,
   value,
@@ -669,12 +676,13 @@ function MiniStat({
   value: string;
   color: string;
 }) {
+  const accent = MINI_STAT_COLORS[color] ?? "fg.muted";
   return (
-    <Box px={3} py={2} borderRadius="md" bg={`${color}.50`}>
-      <Text fontSize="xs" color={`${color}.600`}>
+    <Box px={3} py={2} borderRadius="card" bg="bg.subtle">
+      <Text fontSize="xs" color="fg.muted">
         {label}
       </Text>
-      <Text fontSize="sm" fontWeight="bold" color={`${color}.700`}>
+      <Text fontSize="sm" fontWeight="bold" color={accent}>
         {value}
       </Text>
     </Box>
@@ -716,12 +724,12 @@ function CardComparison({
 
   return (
     <Box
-      bg="white"
+      bg="bg.surface"
       p={6}
-      borderRadius="lg"
-      shadow="sm"
+      borderRadius="card"
+      shadow="card"
       borderWidth="2px"
-      borderColor="purple.200"
+      borderColor="brand.400"
     >
       <HStack justifyContent="space-between" mb={4}>
         <Heading size="md">Card Comparison</Heading>
@@ -755,7 +763,7 @@ function CardComparison({
                 const best = bestIdx(cards.map((c) => -c.annual_fee));
                 return (
                   <Table.Cell key={card.card_id} textAlign="right">
-                    <Text fontWeight={i === best ? "bold" : "normal"} color={i === best ? "green.600" : undefined}>
+                    <Text fontWeight={i === best ? "bold" : "normal"} color={i === best ? "success.300" : undefined}>
                       ${fmt(card.annual_fee)}
                     </Text>
                   </Table.Cell>
@@ -783,11 +791,11 @@ function CardComparison({
                           <Text
                             fontSize="sm"
                             fontWeight={i === winner ? "bold" : "normal"}
-                            color={i === winner ? "green.600" : undefined}
+                            color={i === winner ? "success.300" : undefined}
                           >
                             ${fmt(cr?.dollar_value_annual ?? 0)}
                           </Text>
-                          <Text fontSize="xs" color="gray.500">
+                          <Text fontSize="xs" color="fg.muted">
                             {cr?.multiplier ?? 1}x
                           </Text>
                         </VStack>
@@ -804,7 +812,7 @@ function CardComparison({
                 const best = bestIdx(cards.map((c) => c.rewards_value_annual));
                 return (
                   <Table.Cell key={card.card_id} textAlign="right">
-                    <Text fontWeight={i === best ? "bold" : "normal"} color={i === best ? "green.600" : undefined}>
+                    <Text fontWeight={i === best ? "bold" : "normal"} color={i === best ? "success.300" : undefined}>
                       ${fmt(card.rewards_value_annual)}
                     </Text>
                   </Table.Cell>
@@ -818,7 +826,7 @@ function CardComparison({
                 const best = bestIdx(cards.map((c) => c.credits_value_annual));
                 return (
                   <Table.Cell key={card.card_id} textAlign="right">
-                    <Text fontWeight={i === best ? "bold" : "normal"} color={i === best ? "purple.600" : undefined}>
+                    <Text fontWeight={i === best ? "bold" : "normal"} color={i === best ? "brand.300" : undefined}>
                       ${fmt(card.credits_value_annual)}
                     </Text>
                   </Table.Cell>
@@ -836,7 +844,7 @@ function CardComparison({
                   <Table.Cell key={card.card_id} textAlign="right">
                     {card.sign_up_bonus ? (
                       <VStack gap={0} align="end">
-                        <Text fontWeight={i === best ? "bold" : "normal"} color={i === best ? "blue.600" : undefined}>
+                        <Text fontWeight={i === best ? "bold" : "normal"} color={i === best ? "brand.400" : undefined}>
                           ${fmt(val)}
                         </Text>
                         <Badge size="sm" colorPalette={card.can_meet_sub_requirement ? "green" : "orange"}>
@@ -844,7 +852,7 @@ function CardComparison({
                         </Badge>
                       </VStack>
                     ) : (
-                      <Text color="gray.400">N/A</Text>
+                      <Text color="fg.subtle">N/A</Text>
                     )}
                   </Table.Cell>
                 );
@@ -852,7 +860,7 @@ function CardComparison({
             </Table.Row>
 
             {/* Net Value Year 1 */}
-            <Table.Row bg={sortByYear1 ? "blue.50" : undefined}>
+            <Table.Row bg={sortByYear1 ? "brand.subtle" : undefined}>
               <Table.Cell fontWeight="bold">Net Value (Year 1)</Table.Cell>
               {cards.map((card, i) => {
                 const best = bestIdx(cards.map((c) => c.net_value_year1));
@@ -861,7 +869,7 @@ function CardComparison({
                     <Text
                       fontWeight="bold"
                       fontSize="md"
-                      color={i === best ? "green.700" : card.net_value_year1 >= 0 ? "green.600" : "red.500"}
+                      color={i === best ? "success.300" : card.net_value_year1 >= 0 ? "success.fg" : "danger.fg"}
                     >
                       ${fmt(card.net_value_year1)}
                     </Text>
@@ -871,7 +879,7 @@ function CardComparison({
             </Table.Row>
 
             {/* Net Value Ongoing */}
-            <Table.Row bg={!sortByYear1 ? "blue.50" : undefined}>
+            <Table.Row bg={!sortByYear1 ? "brand.subtle" : undefined}>
               <Table.Cell fontWeight="bold">Net Value (Ongoing)</Table.Cell>
               {cards.map((card, i) => {
                 const best = bestIdx(cards.map((c) => c.net_value_ongoing));
@@ -880,7 +888,7 @@ function CardComparison({
                     <Text
                       fontWeight="bold"
                       fontSize="md"
-                      color={i === best ? "green.700" : card.net_value_ongoing >= 0 ? "green.600" : "red.500"}
+                      color={i === best ? "success.300" : card.net_value_ongoing >= 0 ? "success.fg" : "danger.fg"}
                     >
                       ${fmt(card.net_value_ongoing)}/yr
                     </Text>

@@ -84,13 +84,98 @@ export type ScrapedOffer = {
   sourceHash: string;
 };
 
+// ─── Transaction Scraper Types ───────────────────────────────────
+
+/** Chase's issuer-assigned category codes (MCC-derived) */
+export const CHASE_CATEGORY_CODES = [
+  "AUTO", "BILL", "EDUC", "ENTT", "FEES", "FOOD", "GASS",
+  "GIFT", "HEAL", "MISC", "MRCH", "OFFI", "PROF", "REPA", "TRAV",
+] as const;
+export type ChaseCategoryCode = (typeof CHASE_CATEGORY_CODES)[number];
+
+/** Maps Chase's 4-letter codes to CardMax spend categories */
+export const CHASE_CATEGORY_MAP: Record<ChaseCategoryCode, SpendCategory> = {
+  AUTO: "general",
+  BILL: "general",
+  EDUC: "general",
+  ENTT: "streaming",
+  FEES: "general",
+  FOOD: "dining",
+  GASS: "gas",
+  GIFT: "general",
+  HEAL: "general",
+  MISC: "general",
+  MRCH: "online_shopping",
+  OFFI: "general",
+  PROF: "general",
+  REPA: "general",
+  TRAV: "travel",
+};
+
+/** Base fields common to all scraped transactions */
+type ScrapedTransactionBase = {
+  /** Cleaned merchant name (e.g., "Uber Eats") */
+  merchantName: string;
+  /** Raw statement description (e.g., "UBER EATS PENDING") */
+  rawDescription?: string;
+  /** ISO date string (YYYY-MM-DD) */
+  date: string;
+  /** Dollar amount — positive = charge, negative = credit/payment */
+  amount: number;
+  /** CardMax-normalized spend category */
+  category: SpendCategory;
+  /** Card name as shown on issuer site (e.g., "Ink Preferred (...1327)") */
+  cardName?: string;
+  /** Dedup key: issuer:card:date:merchant:amount */
+  sourceHash: string;
+};
+
+/** Chase-specific transaction fields */
+export type ChaseScrapedTransaction = ScrapedTransactionBase & {
+  issuer: "chase";
+  /** Chase's 4-letter category code (e.g., "TRAV", "FOOD") */
+  chaseCategoryCode?: ChaseCategoryCode;
+  /** Chase's human-readable label (e.g., "Travel", "Food & drink") */
+  chaseCategoryLabel?: string;
+  /** Whether this is a Chase Offer redemption (description starts with "Offer:") */
+  isOfferRedemption: boolean;
+  /** Merchant name extracted from "Offer:MerchantName" pattern */
+  offerMerchant?: string;
+};
+
+/** Amex-specific transaction fields (future) */
+export type AmexScrapedTransaction = ScrapedTransactionBase & {
+  issuer: "amex";
+  /** Amex category (e.g., "Merchandise & Supplies", "Travel") */
+  amexCategory?: string;
+  /** Membership Rewards points earned for this transaction */
+  rewardsEarned?: number;
+};
+
+/** Capital One-specific transaction fields (future) */
+export type CapitalOneScrapedTransaction = ScrapedTransactionBase & {
+  issuer: "capital_one";
+  /** Capital One category */
+  capitalOneCategory?: string;
+  /** Miles earned for this transaction */
+  milesEarned?: number;
+};
+
+/** Discriminated union — issuer field determines the shape */
+export type ScrapedTransaction =
+  | ChaseScrapedTransaction
+  | AmexScrapedTransaction
+  | CapitalOneScrapedTransaction;
+
 // ─── Extension Message Types ─────────────────────────────────────
 export type ExtensionMessage =
   | { type: "OFFERS_SCRAPED"; payload: ScrapedOffer[] }
+  | { type: "TRANSACTIONS_SCRAPED"; payload: ScrapedTransaction[] }
+  | { type: "SCRAPE_TRANSACTIONS"; payload: { issuer: Issuer } }
   | { type: "MERCHANT_LOOKUP"; payload: { domain: string; merchantName: string } }
   | { type: "CHECKOUT_MERCHANT_LOOKUP"; payload: { domain: string } }
   | { type: "AUTH_TOKEN"; payload: { token: string } }
-  | { type: "SCRAPE_STATUS"; payload: { issuer: Issuer; status: "started" | "completed" | "error"; count?: number } };
+  | { type: "SCRAPE_STATUS"; payload: { issuer: Issuer; status: "started" | "completed" | "error"; count?: number; resource?: "offers" | "transactions" } };
 
 // ─── Checkout Overlay Types ─────────────────────────────────────
 export type CardRecommendation = {

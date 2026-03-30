@@ -81,14 +81,14 @@ export default function MerchantsPage() {
     <VStack gap={8} align="stretch">
       <Box>
         <Heading size="xl">Merchant Lookup</Heading>
-        <Text color="gray.600" mt={1}>
+        <Text color="fg.muted" mt={1}>
           Search any merchant to see which card earns the most and what offers
           are available.
         </Text>
       </Box>
 
       {/* Search */}
-      <Box bg="white" p={6} borderRadius="lg" shadow="sm">
+      <Box bg="bg.surface" p={6} borderRadius="card" shadow="card">
         <Input
           placeholder="Search for a merchant (e.g., Amazon, Whole Foods, Delta)..."
           size="lg"
@@ -100,13 +100,13 @@ export default function MerchantsPage() {
 
       {/* Search Results */}
       {searching && (
-        <Text color="gray.500" textAlign="center">
+        <Text color="fg.muted" textAlign="center">
           Searching...
         </Text>
       )}
 
       {searchResults.length > 0 && (
-        <Box bg="white" borderRadius="lg" shadow="sm" overflow="hidden">
+        <Box bg="bg.surface" borderRadius="card" shadow="card" overflow="hidden">
           {searchResults.map((merchant, i) => (
             <Flex
               key={merchant.id}
@@ -114,9 +114,9 @@ export default function MerchantsPage() {
               alignItems="center"
               justifyContent="space-between"
               borderBottomWidth={i < searchResults.length - 1 ? "1px" : "0"}
-              borderColor="gray.100"
+              borderColor="border.muted"
               cursor="pointer"
-              _hover={{ bg: "gray.50" }}
+              _hover={{ bg: "bg.subtle" }}
               onClick={() => selectMerchant(merchant)}
             >
               <Box>
@@ -126,13 +126,13 @@ export default function MerchantsPage() {
                     {merchant.category}
                   </Badge>
                   {merchant.websiteDomain && (
-                    <Text fontSize="xs" color="gray.400">
+                    <Text fontSize="xs" color="fg.subtle">
                       {merchant.websiteDomain}
                     </Text>
                   )}
                 </HStack>
               </Box>
-              <Text fontSize="sm" color="blue.500">
+              <Text fontSize="sm" color="brand.fg">
                 View cards &rarr;
               </Text>
             </Flex>
@@ -142,7 +142,7 @@ export default function MerchantsPage() {
 
       {/* Merchant Detail */}
       {loadingDetail && (
-        <Text color="gray.500" textAlign="center">
+        <Text color="fg.muted" textAlign="center">
           Loading merchant details...
         </Text>
       )}
@@ -150,13 +150,13 @@ export default function MerchantsPage() {
       {selectedMerchant && (
         <VStack gap={6} align="stretch">
           {/* Merchant Header */}
-          <Box bg="white" p={6} borderRadius="lg" shadow="sm">
+          <Box bg="bg.surface" p={6} borderRadius="card" shadow="card">
             <HStack gap={3} mb={1}>
               <Heading size="lg">{selectedMerchant.merchant.name}</Heading>
               <Badge size="sm">{selectedMerchant.merchant.category}</Badge>
             </HStack>
             {selectedMerchant.merchant.websiteDomain && (
-              <Text fontSize="sm" color="gray.500">
+              <Text fontSize="sm" color="fg.muted">
                 {selectedMerchant.merchant.websiteDomain}
               </Text>
             )}
@@ -171,28 +171,30 @@ export default function MerchantsPage() {
               {selectedMerchant.cardRankings.map((card, i) => (
                 <Flex
                   key={card.cardId}
-                  bg="white"
+                  bg="bg.surface"
                   p={4}
-                  borderRadius="lg"
-                  shadow="sm"
+                  borderRadius="card"
+                  shadow="card"
                   alignItems="center"
                   justifyContent="space-between"
+                  direction={{ base: "column", sm: "row" }}
+                  gap={{ base: 3, sm: 0 }}
                   borderLeftWidth="4px"
                   borderLeftColor={
                     i === 0
-                      ? "green.400"
+                      ? "success.300"
                       : i === 1
-                      ? "yellow.400"
+                      ? "accent.200"
                       : i === 2
-                      ? "orange.400"
-                      : "gray.200"
+                      ? "danger.300"
+                      : "border.default"
                   }
                 >
                   <HStack gap={4}>
                     <Text
                       fontWeight="bold"
                       fontSize="lg"
-                      color="gray.400"
+                      color="fg.subtle"
                       w="24px"
                       textAlign="center"
                     >
@@ -210,7 +212,7 @@ export default function MerchantsPage() {
                           {card.issuer.replace("_", " ")}
                         </Badge>
                       </HStack>
-                      <HStack gap={3} mt={1} fontSize="xs" color="gray.500">
+                      <HStack gap={3} mt={1} fontSize="xs" color="fg.muted">
                         <Text>
                           AF: ${Number(card.annualFee).toLocaleString()}
                         </Text>
@@ -232,11 +234,11 @@ export default function MerchantsPage() {
                     <Text
                       fontSize="xl"
                       fontWeight="bold"
-                      color={i === 0 ? "green.600" : "gray.700"}
+                      color={i === 0 ? "success.fg" : "fg.default"}
                     >
                       {card.multiplier}x
                     </Text>
-                    <Text fontSize="xs" color="gray.500">
+                    <Text fontSize="xs" color="fg.muted">
                       {card.currency}
                     </Text>
                   </Box>
@@ -255,12 +257,14 @@ export default function MerchantsPage() {
                 {selectedMerchant.offers.map((offer) => (
                   <Flex
                     key={offer.id}
-                    bg="white"
+                    bg="bg.surface"
                     p={4}
-                    borderRadius="lg"
-                    shadow="sm"
+                    borderRadius="card"
+                    shadow="card"
                     justifyContent="space-between"
                     alignItems="center"
+                    direction={{ base: "column", sm: "row" }}
+                    gap={{ base: 2, sm: 0 }}
                   >
                     <Box>
                       <HStack gap={2}>
@@ -275,18 +279,18 @@ export default function MerchantsPage() {
                         </Badge>
                       </HStack>
                       {offer.description && (
-                        <Text fontSize="xs" color="gray.500" mt={1}>
+                        <Text fontSize="xs" color="fg.muted" mt={1}>
                           {offer.description}
                         </Text>
                       )}
                       {offer.endDate && (
-                        <Text fontSize="xs" color="gray.400" mt={1}>
+                        <Text fontSize="xs" color="fg.subtle" mt={1}>
                           Expires:{" "}
                           {new Date(offer.endDate).toLocaleDateString()}
                         </Text>
                       )}
                     </Box>
-                    <Text fontWeight="bold" color="green.600" fontSize="lg">
+                    <Text fontWeight="bold" color="success.fg" fontSize="lg">
                       {formatValue(offer)}
                     </Text>
                   </Flex>
@@ -303,16 +307,16 @@ export default function MerchantsPage() {
         !selectedMerchant &&
         !loadingDetail && (
           <Box
-            bg="white"
+            bg="bg.surface"
             p={8}
-            borderRadius="lg"
-            shadow="sm"
+            borderRadius="card"
+            shadow="card"
             textAlign="center"
           >
             <VStack gap={4}>
               <Text fontSize="4xl">🔍</Text>
               <Heading size="md">Search for a Merchant</Heading>
-              <Text color="gray.600" maxW="400px">
+              <Text color="fg.muted" maxW="400px">
                 Type a merchant name above to see earning rates across all
                 cards, active offers, and sign-up bonus opportunities.
               </Text>

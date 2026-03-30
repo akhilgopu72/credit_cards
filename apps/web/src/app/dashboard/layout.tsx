@@ -39,31 +39,36 @@ export default function DashboardLayout({
   const sidebarContent = (
     <Flex direction="column" h="full">
       {/* Logo */}
-      <Box px={5} pt={6} pb={4}>
+      <Box px={5} pt={6} pb={2}>
         <Link href="/dashboard" style={{ textDecoration: "none" }}>
-          <HStack gap={2}>
+          <HStack gap={3}>
             <Box
               w={8}
               h={8}
-              bg="accent.500"
-              borderRadius="lg"
+              bg="success.300"
+              borderRadius="md"
               display="flex"
               alignItems="center"
               justifyContent="center"
             >
-              <Text fontWeight="900" fontSize="sm" color="white">
+              <Text fontWeight="800" fontSize="sm" color="bg.page">
                 C
               </Text>
             </Box>
-            <Heading size="md" color="white" fontWeight="700" letterSpacing="-0.02em">
-              CardMax
-            </Heading>
+            <VStack gap={0} align="start">
+              <Heading size="sm" color="white" fontWeight="700" letterSpacing="-0.02em">
+                CardMax
+              </Heading>
+              <Text fontSize="2xs" color="fg.subtle" letterSpacing="0.05em" textTransform="uppercase">
+                Premium Rewards
+              </Text>
+            </VStack>
           </HStack>
         </Link>
       </Box>
 
-      {/* Navigation */}
-      <VStack gap={1} px={3} flex={1} align="stretch" mt={2}>
+      {/* Navigation — Substrate Shift: active item brightens, others dim */}
+      <VStack gap={0.5} px={3} flex={1} align="stretch" mt={4}>
         {navItems.map((item) => {
           const active = isActive(item.href);
           return (
@@ -72,20 +77,35 @@ export default function DashboardLayout({
                 onClick={() => setSidebarOpen(false)}
                 px={3}
                 py={2.5}
-                borderRadius="md"
-                bg={active ? "whiteAlpha.200" : "transparent"}
-                _hover={{ bg: active ? "whiteAlpha.200" : "whiteAlpha.100" }}
+                borderRadius="card"
+                bg={active ? "bg.active" : "transparent"}
+                opacity={active ? 1 : 0.6}
+                _hover={{ bg: "bg.active", opacity: 1 }}
                 transition="all 0.15s"
                 cursor="pointer"
+                position="relative"
               >
+                {/* Green active indicator bar */}
+                {active && (
+                  <Box
+                    position="absolute"
+                    left={0}
+                    top="50%"
+                    transform="translateY(-50%)"
+                    w="3px"
+                    h="60%"
+                    bg="success.300"
+                    borderRadius="full"
+                  />
+                )}
                 <HStack gap={3}>
-                  <Text fontSize="sm" color={active ? "accent.400" : "whiteAlpha.700"}>
+                  <Text fontSize="sm" color={active ? "success.300" : "fg.muted"}>
                     {item.icon}
                   </Text>
                   <Text
                     fontSize="sm"
                     fontWeight={active ? "600" : "400"}
-                    color={active ? "white" : "whiteAlpha.800"}
+                    color={active ? "white" : "fg.muted"}
                   >
                     {item.label}
                   </Text>
@@ -97,19 +117,28 @@ export default function DashboardLayout({
       </VStack>
 
       {/* User section */}
-      <Box
-        px={4}
-        py={4}
-        borderTopWidth="1px"
-        borderTopColor="whiteAlpha.200"
-      >
-        <HStack gap={3}>
+      <VStack px={4} py={4} gap={3} align="stretch">
+        <Box
+          px={3}
+          py={2.5}
+          borderRadius="card"
+          opacity={0.6}
+          _hover={{ opacity: 1, bg: "bg.active" }}
+          transition="all 0.15s"
+          cursor="pointer"
+        >
+          <HStack gap={3}>
+            <Text fontSize="sm" color="fg.muted">?</Text>
+            <Text fontSize="sm" color="fg.muted">Support</Text>
+          </HStack>
+        </Box>
+        <HStack gap={3} px={3}>
           <ClerkUserButton />
-          <Text fontSize="xs" color="whiteAlpha.700">
+          <Text fontSize="xs" color="fg.subtle">
             Account
           </Text>
         </HStack>
-      </Box>
+      </VStack>
     </Flex>
   );
 
@@ -195,13 +224,13 @@ export default function DashboardLayout({
               <Box
                 w={6}
                 h={6}
-                bg="accent.500"
+                bg="success.300"
                 borderRadius="md"
                 display="flex"
                 alignItems="center"
                 justifyContent="center"
               >
-                <Text fontWeight="900" fontSize="xs" color="white">
+                <Text fontWeight="800" fontSize="xs" color="bg.page">
                   C
                 </Text>
               </Box>

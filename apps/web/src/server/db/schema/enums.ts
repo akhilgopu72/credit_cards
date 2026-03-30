@@ -60,7 +60,7 @@ export const offerTypeEnum = pgEnum("offer_type", [
 export const valueTypeEnum = pgEnum("value_type", [
   "percentage",
   "fixed",
-  "points",
+  "points", // @deprecated — use "points_multiplier" or "points_flat" instead. Kept for backwards compat with existing DB rows.
   "points_multiplier",
   "points_flat",
 ]);

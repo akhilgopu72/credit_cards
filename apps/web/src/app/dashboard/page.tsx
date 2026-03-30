@@ -133,21 +133,21 @@ export default function DashboardPage() {
               title="Add Your Cards"
               description="Build your wallet to see personalized optimization recommendations."
               href="/dashboard/wallet"
-              accentColor="brand.600"
+              accentColor="brand.400"
             />
             <ActionCard
               step="2"
               title="Browse Merchants"
               description="Look up any merchant to see which card earns the most."
               href="/dashboard/merchants"
-              accentColor="accent.600"
+              accentColor="success.300"
             />
             <ActionCard
               step="3"
               title="Model Your Spend"
               description="See how different card strategies impact your rewards."
               href="/dashboard/scenarios"
-              accentColor="success.600"
+              accentColor="success.300"
             />
           </Box>
         </Box>
@@ -160,7 +160,7 @@ export default function DashboardPage() {
                 Your Cards
               </Heading>
               <Link href="/dashboard/wallet">
-                <Button variant="ghost" size="sm" color="brand.600">
+                <Button variant="ghost" size="sm" color="brand.400">
                   Manage wallet →
                 </Button>
               </Link>
@@ -466,7 +466,7 @@ function QuickActionCard({
         shadow="card"
         borderWidth="1px"
         borderColor="border.default"
-        _hover={{ shadow: "cardHover", borderColor: "brand.200" }}
+        _hover={{ shadow: "cardHover", borderColor: "brand.400" }}
         transition="all 0.2s"
         h="full"
       >

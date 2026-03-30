@@ -387,7 +387,7 @@ export default function CardDetailPage() {
 
         {/* Category Bonuses Count */}
         <Card.Root bg="bg.surface" borderRadius="card" shadow="card" overflow="hidden">
-          <Box h="3px" bg="blue.500" />
+          <Box h="3px" bg="brand.400" />
           <Card.Body px={5} py={4}>
             <Text fontSize="xs" fontWeight="600" color="fg.muted" textTransform="uppercase" letterSpacing="0.04em">
               Bonus Categories
@@ -404,7 +404,7 @@ export default function CardDetailPage() {
         {/* Active Offers */}
         {offersCount > 0 && (
           <Card.Root bg="bg.surface" borderRadius="card" shadow="card" overflow="hidden">
-            <Box h="3px" bg="green.500" />
+            <Box h="3px" bg="success.300" />
             <Card.Body px={5} py={4}>
               <Text fontSize="xs" fontWeight="600" color="fg.muted" textTransform="uppercase" letterSpacing="0.04em">
                 Active Offers
@@ -500,7 +500,7 @@ export default function CardDetailPage() {
       {/* Category Bonuses Table */}
       {sortedBonuses.length > 0 && (
         <Card.Root bg="bg.surface" borderRadius="card" shadow="card" overflow="hidden">
-          <Box h="3px" bg="blue.500" />
+          <Box h="3px" bg="brand.400" />
           <Card.Body p={{ base: 5, md: 6 }}>
             <Heading size="md" fontWeight="600" mb={4}>
               Category Bonuses
@@ -601,7 +601,7 @@ export default function CardDetailPage() {
       {/* Benefits Section */}
       {benefits.length > 0 && (
         <Card.Root bg="bg.surface" borderRadius="card" shadow="card" overflow="hidden">
-          <Box h="3px" bg="green.500" />
+          <Box h="3px" bg="success.300" />
           <Card.Body p={{ base: 5, md: 6 }}>
             <Heading size="md" fontWeight="600" mb={4}>
               Benefits &amp; Credits

@@ -13,7 +13,7 @@ export type Transaction = {
 
 export type ActiveOffer = {
   id: string;
-  valueType: "percentage" | "fixed" | "points_multiplier" | "points_flat";
+  valueType: "percentage" | "fixed" | "points" | "points_multiplier" | "points_flat";
   value: number;
   minSpend?: number | null;
   maxReward?: number | null;
@@ -100,6 +100,10 @@ function calculateOfferReward(
     }
     case "points_flat": {
       // Earn a flat amount of points (e.g., "700 miles")
+      return offer.value;
+    }
+    case "points": {
+      // @deprecated fallback — treat legacy "points" as points_flat
       return offer.value;
     }
     default:

@@ -63,6 +63,16 @@ export type {
 } from "./merchants";
 
 export {
+  scrapedTransactionSchema,
+  transactionBatchSchema,
+} from "./transactions";
+export type {
+  ScrapedTransactionInput,
+  TransactionBatchInput,
+  TransactionBatchResult,
+} from "./transactions";
+
+export {
   allocationSchema,
   calculateSchema,
   optimizeSchema,

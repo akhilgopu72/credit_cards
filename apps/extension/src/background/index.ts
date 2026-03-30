@@ -1,4 +1,4 @@
-import type { ExtensionMessage, CheckoutLookupResponse, CardRecommendation } from "@cardmax/shared";
+import type { ExtensionMessage, CheckoutLookupResponse, CardRecommendation, ScrapedTransaction } from "@cardmax/shared";
 import { API_BASE } from "../shared/config";
 
 // Listen for messages from content scripts
@@ -11,6 +11,15 @@ chrome.runtime.onMessage.addListener(
           sendResponse({ success: false, error: error.message })
         );
       return true; // Keep message channel open for async response
+    }
+
+    if (message.type === "TRANSACTIONS_SCRAPED") {
+      handleTransactionsScraped(message.payload)
+        .then((result) => sendResponse({ success: true, ...result }))
+        .catch((error) =>
+          sendResponse({ success: false, error: error.message })
+        );
+      return true;
     }
 
     if (message.type === "MERCHANT_LOOKUP") {
@@ -38,9 +47,7 @@ chrome.runtime.onMessage.addListener(
 );
 
 async function handleOffersScraped(
-  offers: ExtensionMessage extends { type: "OFFERS_SCRAPED" }
-    ? ExtensionMessage["payload"]
-    : never
+  offers: Extract<ExtensionMessage, { type: "OFFERS_SCRAPED" }>["payload"]
 ) {
   console.log(`[CardMax BG] Received ${offers.length} offers, posting to API...`);
 
@@ -68,6 +75,39 @@ async function handleOffersScraped(
     return result;
   } catch (err) {
     console.error(`[CardMax BG] Fetch failed:`, err);
+    throw err;
+  }
+}
+
+async function handleTransactionsScraped(transactions: ScrapedTransaction[]) {
+  console.log(
+    `[CardMax BG] Received ${transactions.length} transactions, posting to API...`
+  );
+
+  const token = await getAuthToken();
+  const authToken = token || "cardmax-dev-extension";
+
+  try {
+    const response = await fetch(`${API_BASE}/transactions`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${authToken}`,
+      },
+      body: JSON.stringify({ transactions }),
+    });
+
+    if (!response.ok) {
+      const text = await response.text();
+      console.error(`[CardMax BG] API error ${response.status}: ${text}`);
+      throw new Error(`Failed to sync transactions: ${response.status}`);
+    }
+
+    const result = await response.json();
+    console.log(`[CardMax BG] Transactions API response:`, result);
+    return result;
+  } catch (err) {
+    console.error(`[CardMax BG] Transactions fetch failed:`, err);
     throw err;
   }
 }
