@@ -885,10 +885,26 @@ award_sweet_spots (program, route_type, cabin, points_required, typical_cash_val
 - [x] **WS2**: Dashboard polish — Merchants, Scenarios, Recommendations pages refactored to semantic theme tokens (`bg.surface`, `fg.muted`, `success.fg`, `danger.fg`, `brand.fg`, etc.), responsive flex/grid, mobile-friendly tables
 - [x] **Testing**: Chrome browser visual verification — all polished pages rendering correctly (search results, card rankings, scenario inputs, recommendation results with MiniStat cards)
 - [ ] **WS3**: Build offer expiration/cleanup logic
-- [ ] User onboarding flow improvements
+- [x] User onboarding flow — built 3-step wizard matching Stitch designs (card selection → spend profile → rewards reveal)
 - [x] **Testing**: E2E API testing — wallet CRUD (add/update/delete/duplicate-guard/error-cases), scenario calculate/optimize/net-value/save/list, dashboard stats (cards/credits/fees/summaries)
 
-### Week 7: Integration & Deploy (Apr 2 - Apr 15)
+### Week 7: Obsidian Architect Design System & Transaction Scraping (Mar 29 - Apr 1)
+- [x] **WS5**: Chase transaction scraper — discriminated union types (`ChaseScrapedTransaction` | `AmexScrapedTransaction` | `CapitalOneScrapedTransaction`), Chase category code mapping, `POST /api/transactions` endpoint, extension content script (26 txns scraped from live Chase account)
+- [x] **WS5**: Pivoted transaction source from DOM scraping to Plaid after discovering Chase's rich internal API (MCC codes, rewards earned, enriched merchants)
+- [x] **Design**: Generated "Obsidian Architect" design system via Google Stitch — 10 screens (dashboard, wallet, merchants, scenarios, recommendations, landing page, onboarding 3-step, chrome popup, heatmap)
+- [x] **Design**: Full Chakra theme rewrite — dark surfaces (#0e0e0e → #2c2c2c), green (#3fff8b) + blue (#6e9bff) accents, Manrope/Inter fonts, ghost borders, ambient glow shadows
+- [x] **WS2**: Landing page rewrite — "Maximize Every Swipe" hero, partner logos, feature grid, stats, CTAs
+- [x] **WS2**: Dashboard redesign — bento grid layout with "Best Card Right Now" widget, Transactions panel, Reward Velocity chart, Points Balance
+- [x] **WS2**: Scenarios redesign — split-panel layout (left inputs, right results), metrics tiles, Optimized Path Comparison, Category Allocation Matrix
+- [x] **WS2**: Recommendations update — "Elite Recommendations" header, Trust Partners sidebar, Stitch pill buttons
+- [x] **WS2**: Sidebar redesign — Substrate Shift active state, green accent indicator, "PREMIUM REWARDS" subtitle
+- [x] **WS2**: Wallet/Merchants/Offers visual updates — darker card gradients, "Maximize every swipe" hero, larger headings
+- [x] **WS2**: New onboarding flow (`/onboarding`) — 3-step wizard (card selection → spend profile → rewards reveal), glassmorphism footer, progress bar
+- [x] **Infra**: Demo seed script (`db:seed-demo`) — populates 5 wallet cards, 12 offers, benefit tracking, saved scenario
+- [x] **Infra**: Zero hardcoded light-mode colors remaining across all dashboard pages (verified via grep)
+- [x] **Docs**: Stitch progress tracker (`docs/stitch-progress.md`), hardcoded data audit (`docs/hardcoded-data-audit.md`)
+
+### Week 8: Integration & Deploy (Apr 2 - Apr 15)
 - [ ] **WS5**: Document and plan Mode 3 "Build Optimal Wallet" combinatorial optimizer for post-prototype
 - [ ] **Testing**: Written integration tests — wallet CRUD API (add/edit/remove cards, verify DB roundtrip)
 - [ ] **Testing**: Written integration tests — scenarios API (calculate, optimize, save/load with real DB data)
