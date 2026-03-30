@@ -13,6 +13,7 @@
     "db:generate": "drizzle-kit generate",
     "db:seed": "tsx src/server/db/seed.ts",
     "db:seed-merchants": "tsx src/server/db/seed-merchants.ts",
+    "db:seed-demo": "tsx src/server/db/seed-demo.ts",
     "db:studio": "drizzle-kit studio",
     "openapi:generate": "tsx scripts/generate-openapi.ts",
     "api:generate": "tsx scripts/generate-openapi.ts && tsx scripts/generate-api-client.ts",

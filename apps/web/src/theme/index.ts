@@ -267,6 +267,19 @@ const config = defineConfig({
       fontFamily: "heading",
       letterSpacing: "-0.02em",
     },
+    // Fix inputs on dark backgrounds
+    "input, textarea, select": {
+      color: "fg.default !important",
+      bg: "bg.subtle",
+      borderColor: "border.default",
+      _placeholder: {
+        color: "fg.subtle",
+      },
+      _focus: {
+        borderColor: "brand.400",
+        boxShadow: "0 0 0 1px var(--chakra-colors-brand-400)",
+      },
+    },
   },
 });
 

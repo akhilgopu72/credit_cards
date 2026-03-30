@@ -72,45 +72,32 @@ export default function DashboardLayout({
         {navItems.map((item) => {
           const active = isActive(item.href);
           return (
-            <Link key={item.href} href={item.href} style={{ textDecoration: "none" }}>
-              <Box
+            <Link key={item.href} href={item.href} style={{ textDecoration: "none", display: "block" }}>
+              <HStack
                 onClick={() => setSidebarOpen(false)}
                 px={3}
                 py={2.5}
                 borderRadius="card"
                 bg={active ? "bg.active" : "transparent"}
-                opacity={active ? 1 : 0.6}
-                _hover={{ bg: "bg.active", opacity: 1 }}
+                _hover={{ bg: "bg.active" }}
                 transition="all 0.15s"
                 cursor="pointer"
-                position="relative"
+                gap={3}
+                borderLeftWidth="3px"
+                borderLeftColor={active ? "success.300" : "transparent"}
               >
-                {/* Green active indicator bar */}
-                {active && (
-                  <Box
-                    position="absolute"
-                    left={0}
-                    top="50%"
-                    transform="translateY(-50%)"
-                    w="3px"
-                    h="60%"
-                    bg="success.300"
-                    borderRadius="full"
-                  />
-                )}
-                <HStack gap={3}>
-                  <Text fontSize="sm" color={active ? "success.300" : "fg.muted"}>
-                    {item.icon}
-                  </Text>
-                  <Text
-                    fontSize="sm"
-                    fontWeight={active ? "600" : "400"}
-                    color={active ? "white" : "fg.muted"}
-                  >
-                    {item.label}
-                  </Text>
-                </HStack>
-              </Box>
+                <Text fontSize="sm" color={active ? "success.300" : "fg.subtle"}>
+                  {item.icon}
+                </Text>
+                <Text
+                  fontSize="sm"
+                  fontWeight={active ? "600" : "400"}
+                  color={active ? "white" : "fg.subtle"}
+                  _groupHover={{ color: "fg.muted" }}
+                >
+                  {item.label}
+                </Text>
+              </HStack>
             </Link>
           );
         })}
