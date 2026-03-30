@@ -169,7 +169,7 @@ export default function OffersPage() {
         gap={4}
       >
         <Box>
-          <Heading size="2xl" fontWeight="700" letterSpacing="-0.02em">
+          <Heading size="3xl" fontWeight="800" letterSpacing="-0.03em">
             Your Offers
           </Heading>
           <Text color="fg.muted" mt={1}>

@@ -71,6 +71,23 @@
 - **Stitch hardcodes to track**: Trust partner logos (VISA, AMEX, CHASE, MASTER), "Data Accuracy: 99.4%", Financial Disclosure footer text, "Apply Now" affiliate CTAs
 - **API needed**: Confidence/accuracy score in recommend response, affiliate URL tracking
 
+### Offers (`apps/web/src/app/dashboard/offers/page.tsx`)
+- Fully API-backed (offers from DB, filters, search, sorting)
+- No hardcodes — all data from `GET /api/offers` and wallet cards
+- Header updated to larger Manrope heading
+
+### Onboarding (`apps/web/src/app/onboarding/page.tsx`)
+- **NEW PAGE** — 3-step wizard matching Stitch onboarding designs
+
+| Data | Current Value | API Needed |
+|------|--------------|------------|
+| Popular cards grid (Step 1) | `POPULAR_CARDS` static array (6 cards) | `GET /api/cards?popular=true` or curated list from card-data |
+| Default spend values (Step 2) | `DEFAULT_SPEND` with preset values | Pre-fill from Plaid if connected, otherwise user estimates |
+| Annual value "$4,200" (Step 3) | `MOCK_RESULTS.annualValue` | `POST /api/scenarios?action=recommend` with user's selected cards + spend |
+| Points "284K" (Step 3) | `MOCK_RESULTS.pointsPerYear` | Same recommend API response |
+| Best card per category (Step 3) | `MOCK_RESULTS.bestPerCategory` array | Same recommend API — already returns per-category breakdown |
+| Potential upside "+$800" (Step 3) | `MOCK_RESULTS.potentialUpside` | Compare current vs optimized from recommend response |
+
 ### Chrome Extension Popup
 - TBD — will audit when redesigned from `chrome_extension_popup/code.html`
 - **Expected hardcodes**: Current merchant detection, best card recommendation, recent lookups
